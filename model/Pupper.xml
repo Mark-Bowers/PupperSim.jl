@@ -1,0 +1,200 @@
+<!-- Stanford Woofer Model
+
+The state space is populated with joints in the order that they are
+defined in this file.
+
+The elements of the control variable s.d.ctrl correspond to:
+[fr_x, fr_y, fr_ext,
+fl_x, fl_y, fl_ext,
+br_x, br_y, br_ext,
+bl_x, bl_y, bl_ext]
+
+fr = front-right
+fl = front-left
+br = back-right
+bl = back-left
+_x indicates rotation on the forward/back axis of the robot
+_y indicates rotation on the left/right axis of the hip module
+_ext indicates linear extension of the leg. Positive values = leg goes up
+-->
+<mujoco model="Pupper">
+<compiler angle="radian" meshdir="mesh/" texturedir="texture/"/>
+  
+  <visual>
+    <quality shadowsize="16384"/>
+  </visual>
+
+  <default>
+    <joint armature="0.01936" solimplimit="0.9 0.95 0.01" solreflimit="0.01 1" stiffness="0"/>
+    <geom conaffinity="0" condim="3" contype="1" friction=".1 .1 .1" solimp="0.9 0.95 0.01" solref="0.01 1"/> <!-- rgba="0.8 0.6 .4 1" -->
+    <position forcelimited="true"/>
+</default>
+
+<option>
+    <flag sensornoise="disable"/>
+</option>
+
+<!--<sensor>
+    <accelerometer name="accel" noise="0.01" site="imu_site"/>
+    <gyro name="gyro" noise="0.02" site="imu_site"/>
+</sensor>-->
+
+<size nstack="300000" nuser_geom="1"/>
+
+<option timestep="0.0001"/>
+
+<asset>
+    <texture builtin="gradient" height="100" rgb1="1 1 1" rgb2="0 0 0" type="skybox" width="100"/>
+    <texture builtin="flat" height="1278" mark="cross" markrgb="1 1 1" name="texgeom" random="0.01" rgb1="0.8 0.6 0.4" rgb2="0.8 0.6 0.4" type="cube" width="127"/>
+    <texture builtin="checker" height="100" name="texplane" rgb1="0 0 0" rgb2="0.8 0.8 0.8" type="2d" width="100"/>
+    <material name="MatPlane" reflectance="0.5" shininess="1" specular="1" texrepeat="60 60" texture="texplane"/>
+    <material name="geom" texture="texgeom" texuniform="true"/>
+  <mesh file="Body.stl"/>
+  <mesh file="CLS6336HV.stl"/>
+  <mesh file="Hub.stl"/>
+  <mesh file="ServoHorn.stl"/>
+  <mesh file="UpperLeg.stl"/>
+  <mesh file="LowerLeg.stl"/>
+  <texture type="2d" file="BrushedAluminum.png"/>
+  <texture type="2d" file="Oak.png"/>
+  <texture type="2d" file="CarbonFiber.png" name="CarbonFiber2D"/>
+  <texture type="cube" file="CarbonFiber.png" gridsize="3 4" gridlayout=".U..LFRB.D.."/>
+  <texture type="cube" file="CLS6336HV.png"/>
+  <material name="BrushedAluminum" texture="BrushedAluminum" specular="0.9" shininess="0.9" reflectance="0.3"/>
+  <material name="CarbonFiber" texture="CarbonFiber" specular="0.9" shininess="0.9" reflectance="0.3"/>
+  <material name="CLS6336HV" texture="CLS6336HV" specular="0.9" shininess="0.9" reflectance="0.3"/>
+  <material name="CarbonFiber2D" texture="CarbonFiber2D" specular="0.9" shininess="0.9" reflectance="0.3"/>
+  <material name="Oak" texture="Oak" specular="0.9" shininess="0.9" reflectance="0.3" texrepeat="4 4"/>
+  <material name="ABS" rgba=".1 .1 .1 1"/>
+</asset>
+
+<worldbody>
+    <!--<light cutoff="100" diffuse="1 1 1" dir="-0 0 -1.3" directional="true" exponent="1" pos="0 0 1.3" specular=".1 .1 .1"/>
+    <geom conaffinity="1" condim="3" material="MatPlane" name="floor" pos="0 0 0" rgba="0.8 0.9 0.8 1" size="40 40 40" type="plane"/>-->
+    <light pos="0.4 -0.2 1.5" dir="-0.4 0.2 -1.5" cutoff="35"/>
+    <!--<geom type="plane" material="Oak" size="10 10 .1" conaffinity="1" condim="3" name="floor"/>-->
+    <geom type="plane" material="Oak" size="2 2 .4" conaffinity="1" condim="3" name="floor"/>
+    <geom type="sphere" material="BrushedAluminum" pos="0.5 0 0.1" size="0.1" conaffinity="1" condim="3" name="obstacle1"/>
+    <geom type="box" material="BrushedAluminum" pos="-0.3 0.3 0.1" size="0.4 0.05 0.15" conaffinity="1" condim="3" name="obstacle2"/>
+    <body name="torso" pos="0 0 0.27">
+        <camera name="track" mode="trackcom" pos="0 -2 0.3" xyaxes="1 0 0 0 0 1"/>
+        <joint armature="0" axis="1 0 0" damping="0" limited="false" name="rootx" pos="0 0 0" stiffness="0" type="free"/>
+        <!--<geom pos="0 0 0" name="torso" size="0.151924 0.05 0.03425" type="box" rgba=".8 .1 .1 .1"/>-->
+        <body pos="0.0 0.0 -0.03425" quat="-0.7071068 0 0 0.7071068">
+          <geom type="mesh" mesh="Body" pos="0 -0.133925 0.0015" material="ABS"/>
+          <site type="box" pos="0 0 0.0666" size="0.03 0.15 0.002" material="CarbonFiber" rgba=".5 .5 .5 .1"/>
+          <body pos="0.05 0.028 0.0542" quat="0 -0.7071068 0 0.7071068">
+            <!--fr servo-->
+            <geom type="mesh" mesh="CLS6336HV" material="ABS"/>
+            <site type="box" pos="0.0205 -0.02 0.01" size="0.018 0.019 0.0101" material="CLS6336HV"/>
+          </body>
+          <body pos="-0.03 0.028 0.0542" quat="0 -0.7071068 0 0.7071068">
+            <!--fl servo-->
+            <geom type="mesh" mesh="CLS6336HV" material="ABS"/>
+            <site type="box" pos="0.0205 -0.02 0.01" size="0.018 0.019 0.0101" material="CLS6336HV"/>
+          </body>
+          <body pos="0.05 -0.1721 0.0542" quat="0 -0.7071068 0 0.7071068">
+            <!--br servo-->
+            <geom type="mesh" mesh="CLS6336HV" material="ABS"/>
+            <site type="box" pos="0.0205 -0.02 0.01" size="0.018 0.019 0.0101" material="CLS6336HV"/>
+          </body>
+          <body pos="-0.03 -0.1721 0.0542" quat="0 -0.7071068 0 0.7071068">
+            <!--bl servo-->
+            <geom type="mesh" mesh="CLS6336HV" material="ABS"/>
+            <site type="box" pos="0.0205 -0.02 0.01" size="0.018 0.019 0.0101" material="CLS6336HV"/>
+          </body>
+        </body>
+        <!--<site name="imu_site" pos="0 0 0" size=".01 .01 .01" type="box"/>-->
+     
+        <body name="fr_module" pos="0.1 -0.04 0">
+            <!--<geom pos="0 -0.0132 0" name="fr_block" type="box" size="0.0197 0.0372 0.0107" rgba="0.4 0.8 .4 .5"/>-->
+            <body pos="-0.02 -0.042 0.022" quat="0.7071068 0 0.7071068 0">
+              <geom type="mesh" mesh="Hub" material="ABS"/>
+              <site type="box" pos="0.0129 -0.02 0.02955" quat="0.7071068 0 -0.7071068 0" size="0.018 0.019 0.0101" material="CLS6336HV"/>
+              <site type="box" pos="0.0129 0.044 0.02955" quat="0 -0.7071068 0 0.7071068" size="0.018 0.019 0.0101" material="CLS6336HV"/>
+            </body>
+            <joint axis="1 0 0" name="fr_x" pos="0 0 0" limited="true" range="-1.57 1.57" type="hinge" damping="1.049"/>
+            <body name="fr" pos="0 -0.03 0">
+                <joint axis="0 1 0" name="fr_y" pos="0 0 0" limited="true" range="-1.57 1.57" type="hinge" damping="1.049"/>
+                <geom axisangle="0 1 0 0" name="fr" fromto="0 0 0 0 0 -0.125" size="0.01" type="capsule" rgba = "1 0 0 0.5" density="50"/>
+                <body name="fr2" pos="0 0 -0.1235">
+                    <joint axis="0 1 0" name="fr_y2" pos="0 0 0" limited="true" range="-3.14 0.0" type="hinge" damping="1.049"/>
+                    <geom axisangle="0 1 0 0" name="fr_l2" fromto="0 0 0 0 0 -0.125" size="0.01" type="capsule" rgba="1 0 0 0.5" density="50"/>
+                </body>
+            </body>
+        </body>
+
+        <body name="fl_module" pos="0.1 0.04 0">
+            <!--<geom pos = "0 0.0132 0" name="fl_block" type="box" size="0.0197 0.0372 0.0107" rgba="0.6 0.8 .4 1"/>-->
+            <body pos="-0.022 0.042 -0.004" quat="0 0.7071068 0 0.7071068">
+              <geom type="mesh" mesh="Hub" material="ABS"/>
+              <site type="box" pos="0.0129 -0.02 0.02955" quat="0.7071068 0 -0.7071068 0" size="0.018 0.019 0.0101" material="CLS6336HV"/>
+              <site type="box" pos="0.0129 0.044 0.02955" quat="0 -0.7071068 0 0.7071068" size="0.018 0.019 0.0101" material="CLS6336HV"/>
+            </body>
+            <joint axis="1 0 0" name="fl_x" pos="0 0 0" limited="true" range="-1.57 1.57" type="hinge" damping="1.049"/>
+            <body name="fl" pos="0 0.03 0">
+                <joint axis="0 1 0" name="fl_y" pos="0 0 0" limited="true" range="-1.57 1.57" type="hinge" damping="1.049"/>
+                <geom axisangle="0 1 0 0" name="fl" fromto="0 0 0 0 0 -0.125" size="0.01" type="capsule" rgba = "1 0 0 0.5" density="50"/>
+                <body name="fl2" pos="0 0 -0.1235">
+                    <joint axis="0 1 0" name="fl_y2" pos="0 0 0" limited="true" range="-3.14 0.0" type="hinge" damping="1.049"/>
+                    <geom axisangle="0 1 0 0" name="fl_l2" fromto="0 0 0 0 0 -0.125" size="0.01" type="capsule" rgba="1 0 0 0.5" density="50"/>
+                </body>
+            </body>
+        </body>
+
+        <body name="br_module" pos="-0.1 -0.04 0">
+            <!--<geom pos = "0 -0.0132 0" name="br_block" type="box" size="0.0197 0.0372 0.0107" rgba="0.6 0.8 .4 1"/>-->
+            <body pos="-0.02 -0.042 0.022" quat="0.7071068 0 0.7071068 0">
+              <geom type="mesh" mesh="Hub" material="ABS"/>
+              <site type="box" pos="0.0129 -0.02 0.02955" quat="0.7071068 0 -0.7071068 0" size="0.018 0.019 0.0101" material="CLS6336HV"/>
+              <site type="box" pos="0.0129 0.044 0.02955" quat="0 -0.7071068 0 0.7071068" size="0.018 0.019 0.0101" material="CLS6336HV"/>
+            </body>
+            <joint axis="1 0 0" name="br_x" pos="0 0 0" limited="true" range="-1.57 1.57" type="hinge" damping="1.049"/>
+            <body name="br" pos="0 -0.03 0">
+                <joint axis="0 1 0" name="br_y" pos="0 0 0" limited="true" range="-1.57 1.57" type="hinge" damping="1.049"/>
+                <geom axisangle="0 1 0 0" name="br" fromto="0 0 0 0 0 -0.125" size="0.01" type="capsule" rgba = "1 0 0 0.5" density="50"/>
+                <body name="br2" pos="0 0 -0.1235">
+                    <joint axis="0 1 0" name="br_y2" pos="0 0 0" limited="true" range="-3.14 0.0" type="hinge" damping="1.049"/>
+                    <geom axisangle="0 1 0 0" name="br_l2" fromto="0 0 0 0 0 -0.125" size="0.01" type="capsule" rgba="1 0 0 0.5" density="50"/>
+                </body>
+            </body>
+        </body>
+
+        <body name="bl_module" pos="-0.1 0.04 0">
+            <!--<geom pos = "0 0.0132 0" name="bl_block" type="box" size="0.0197 0.0372 0.0107" rgba="0.6 0.8 .4 1"/>-->
+            <body pos="-0.022 0.042 -0.004" quat="0 0.7071068 0 0.7071068">
+              <geom type="mesh" mesh="Hub" material="ABS"/>
+              <site type="box" pos="0.0129 -0.02 0.02955" quat="0.7071068 0 -0.7071068 0" size="0.018 0.019 0.0101" material="CLS6336HV"/>
+              <site type="box" pos="0.0129 0.044 0.02955" quat="0 -0.7071068 0 0.7071068" size="0.018 0.019 0.0101" material="CLS6336HV"/>
+            </body>
+            <joint axis="1 0 0" name="bl_x" pos="0 0 0" limited="true" range="-1.57 1.57" type="hinge" damping="1.049"/>
+            <body name="bl" pos="0 0.03 0">
+                <joint axis="0 1 0" name="bl_y" pos="0 0 0" limited="true" range="-1.57 1.57" type="hinge" damping="1.049"/>
+                <geom axisangle="0 1 0 0" name="bl" fromto="0 0 0 0 0 -0.125" size="0.01" type="capsule" rgba = "1 0 0 0.5" density="50"/>
+                <body name="bl2" pos="0 0 -0.1235">
+                    <joint axis="0 1 0" name="bl_y2" pos="0 0 0" limited="true" range="-3.14 0.0" type="hinge" damping="1.049"/>
+                    <geom axisangle="0 1 0 0" name="bl_l2" fromto="0 0 0 0 0 -0.125" size="0.01" type="capsule" rgba="1 0 0 0.5" density="50"/>
+                </body>
+            </body>
+        </body>
+    </body>
+</worldbody>
+
+<actuator>
+    <position gear="1" joint="fr_x" name="fr_x" kp="300" forcerange="-3.0 3.0"/>
+    <position gear="1" joint="fr_y" name="fr_y" kp="300" forcerange="-3.0 3.0"/>
+    <position gear="1" joint="fr_y2" name="fr_y2" kp="300" forcerange="-3.0 3.0"/>
+
+    <position gear="1" joint="fl_x" name="fl_x" kp="300" forcerange="-3.0 3.0"/>
+    <position gear="1" joint="fl_y" name="fl_y" kp="300" forcerange="-3.0 3.0"/>
+    <position gear="1" joint="fl_y2" name="fl_y2" kp="300" forcerange="-3.0 3.0"/>
+
+    <position gear="1" joint="br_x" name="br_x" kp="300" forcerange="-3.0 3.0"/>
+    <position gear="1" joint="br_y" name="br_y" kp="300" forcerange="-3.0 3.0"/>
+    <position gear="1" joint="br_y2" name="br_y2" kp="300" forcerange="-3.0 3.0"/>
+
+    <position gear="1" joint="bl_x" name="bl_x" kp="300" forcerange="-3.0 3.0"/>
+    <position gear="1" joint="bl_y" name="bl_y" kp="300" forcerange="-3.0 3.0"/>
+    <position gear="1" joint="bl_y2" name="bl_y2" kp="300" forcerange="-3.0 3.0"/>
+    </actuator>
+</mujoco>
