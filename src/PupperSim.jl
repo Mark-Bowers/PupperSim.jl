@@ -713,7 +713,7 @@ function simstep(s::mjSim)
    end
 end
 
-function simulate(; modelpath = joinpath(dirname(pathof(@__MODULE__)), "../model/Pupper.xml"))
+function simulate(modelpath = joinpath(dirname(pathof(@__MODULE__)), "../model/Pupper.xml"))
    s = loadmodel(modelpath, 1200, 900)
    # Loop until the user closes the window
    PupperSim.alignscale(s)
