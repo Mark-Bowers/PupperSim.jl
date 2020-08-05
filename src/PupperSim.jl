@@ -6,6 +6,7 @@ using StaticArrays
 using Colors
 using ImageCore
 using VideoIO
+using QuadrupedController
 
 ##################################################### globals
 const fontscale = mj.FONTSCALE_200 # can be 100, 150, 200
@@ -713,7 +714,11 @@ function simstep(s::mjSim)
    end
 end
 
-function simulate(modelpath = joinpath(dirname(pathof(@__MODULE__)), "../model/Pupper.xml"))
+function simulate(
+      modelpath = joinpath(dirname(pathof(@__MODULE__)), "../model/Pupper.xml"),
+      controller::QuadrupedController.Controller = QuadrupedController.Controller()
+   )
+   println(controller)
    s = loadmodel(modelpath, 1200, 900)
    # Loop until the user closes the window
    PupperSim.alignscale(s)
