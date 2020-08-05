@@ -2,6 +2,7 @@
 
 using GLFW
 using MuJoCo
+using StaticArrays
 using Colors
 using ImageCore
 using VideoIO
@@ -9,11 +10,11 @@ using VideoIO
 ##################################################### globals
 const fontscale = mj.FONTSCALE_200 # can be 100, 150, 200
 const maxgeom       = 5000 # preallocated geom array in mjvScene
-const syncmisalign  = 0.1  # maximum time mis-alignment before re-sync
-const refreshfactor = 0.7  # fraction of refresh available for simulation
+#const syncmisalign  = 0.1  # maximum time mis-alignment before re-sync
+#const refreshfactor = 0.7  # fraction of refresh available for simulation
 
 imgstack = []
-nframes = 0
+#nframes = 0
 
 # modified from https://github.com/klowrey/MujocoSim.jl/
 # - Named module to PupperSim
@@ -67,195 +68,198 @@ mutable struct mjSim
    #ui0::mjUI
    #ui1::mjUI
 
-   function mjSim(m::jlModel, d::jlData, name::String;
-                  width=0, height=0)
+   function mjSim(m::jlModel, d::jlData, name::String; width=0, height=0)
       vmode = GLFW.GetVideoMode(GLFW.GetPrimaryMonitor())
       w = width > 0 ? width : floor(2*vmode.width / 3)
       h = height > 0 ? height : floor(2*vmode.height / 3)
+
       new(0.0, 0.0, false, false, false, GLFW.MOUSE_BUTTON_1, 0.0,
-          vmode.refreshrate,
-          0, false, false, false, false, false, true, true, 0,
-          nothing, #open("/tmp/test.bin","w"),
-          Vector{RGB{N0f8}}(undef, 5120 * 2880),
-      0.0, 0, 0,
-      Ref(mjvScene()),
-      Ref(mjvCamera()),
-      Ref(mjvOption()),
-      Ref(mjvPerturb()),
-      Ref(mjrContext()),
-      Ref(mjvFigure()),
-      m, d,
-      GLFW.CreateWindow(w, h, "Simulate"),
-      vmode
+         vmode.refreshrate,
+         0, false, false, false, false, false, true, true, 0,
+         nothing, #open("/tmp/test.bin","w"),
+         Vector{RGB{N0f8}}(undef, 5120 * 2880),
+         0.0, 0, 0,
+         Ref(mjvScene()),
+         Ref(mjvCamera()),
+         Ref(mjvOption()),
+         Ref(mjvPerturb()),
+         Ref(mjrContext()),
+         Ref(mjvFigure()),
+         m, d,
+         GLFW.CreateWindow(w, h, "Simulate"),
+         vmode
      )
    end
 end
 
 export mjSim
 
-const keycmds = Dict{GLFW.Key, Function}(GLFW.KEY_F1=>(s)->begin  # help
-                                            s.showhelp += 1
-                                            if s.showhelp > 2 s.showhelp = 0 end
-                                         end,
-                                         GLFW.KEY_F2=>(s)->begin  # option
-                                            s.showoption = !s.showoption;
-                                         end,
-                                         GLFW.KEY_F3=>(s)->begin  # info
-                                            s.showinfo = !s.showinfo;
-                                         end,
-                                         GLFW.KEY_F4=>(s)->begin  # depth
-                                            s.showdepth = !s.showdepth;
-                                         end,
-                                         GLFW.KEY_F5=>(s)->begin  # toggle full screen
-                                            s.showfullscreen = !s.showfullscreen;
-                                            s.showfullscreen ? GLFW.MaximizeWindow(s.window) : GLFW.RestoreWindow(s.window)
-                                         end,
-                                         #GLFW.KEY_F6=>(s)->begin  # stereo
-                                         #   s.stereo = s.scn.stereo == mj.mjSTEREO_NONE ? mjSTEREO_QUADBUFFERED : mj.mjSTEREO_NONE
-                                         #   s.scn[].stereo
-                                         #end,
-                                         GLFW.KEY_F7=>(s)->begin  # sensor figure
-                                            s.showsensor = !s.showsensor;
-                                         end,
-                                         GLFW.KEY_F8=>(s)->begin  # profiler
-                                            s.showprofiler = !s.showprofiler;
-                                         end,
-                                         GLFW.KEY_ENTER=>(s)->begin  # slow motion
-                                            s.slowmotion = !s.slowmotion;
-                                            s.slowmotion ? println("Slow Motion Mode!") : println("Normal Speed Mode!")
-                                         end,
-                                         GLFW.KEY_SPACE=>(s)->begin  # pause
-                                            s.paused = !s.paused
-                                            s.paused ? println("Paused") : println("Running")
-                                         end,
-                                         GLFW.KEY_V=>(s)->begin
-                                            if s.record == nothing
-                                               s.record = 1
-                                               println("Recording")
-                                            else
-                                               #s.record = nothing
-                                               #println("Closing /tmp/video.mp4")
-                                               #close(s.record)
-                                               #vfname = "testvideo.mp4"
-                                               #props = [:priv_data => ("crf"=>"22","preset"=>"medium")]
-                                               #println("Writing $vfname")
-                                               #encodedvideopath = VideoIO.encodevideo(vfname,imgstack,framerate=30,AVCodecContextProperties=props, silent=true)
-                                               #println("Created: $encodedvideopath")
-                                            end
-                                         end,
-                                         GLFW.KEY_PAGE_UP=>(s)->begin    # previous keyreset
-                                            s.keyreset = min(s.m.m[].nkey - 1, s.keyreset + 1)
-                                         end,
-                                         GLFW.KEY_PAGE_DOWN=>(s)->begin  # next keyreset
-                                            s.keyreset = max(-1, s.keyreset - 1)
-                                         end,
-                                         # continue with reset
-                                         GLFW.KEY_BACKSPACE=>(s)->begin  # reset
-                                          #  GLFW.DestroyWindow(s.window)
-                                          #  return nothing
-                                             mj_resetData(s.m.m, s.d.d)
-                                             if s.keyreset >= 0 && s.keyreset < s.m.m[].nkey
-                                                s.d[].time = s.m.key_time[s.keyreset+1]
-                                                s.d.qpos[:] = s.m.key_qpos[:,s.keyreset+1]
-                                                s.d.qvel[:] = s.m.key_qvel[:,s.keyreset+1]
-                                                s.d.act[:]  = s.m.key_act[:,s.keyreset+1]
-                                             end
-                                             mj_forward(s.m, s.d)
-                                             #profilerupdate()
-                                             sensorupdate(s)
-                                         end,
-                                         GLFW.KEY_RIGHT=>(s)->begin  # step forward
-                                            if s.paused
-                                               mj_step(s.m, s.d)
-                                               #profilerupdate()
-                                               sensorupdate(s)
-                                            end
-                                         end,
-                                         # GLFW.KEY_LEFT=>(s)->begin  # step back
-                                         #    if s.paused
-                                         #       dt = s.m.m[].opt.timestep
-                                         #       s.m.m[].opt.timestep = -dt
-                                         #       #cleartimers(s.d);
-                                         #       mj_step(s.m, s.d);
-                                         #       s.m.m[].opt.timestep = dt
-                                         #       #profilerupdate()
-                                         #       sensorupdate(s)
-                                         #    end
-                                         # end,
-                                         GLFW.KEY_DOWN=>(s)->begin  # step forward 100
-                                            if s.paused
-                                               #cleartimers(d);
-                                               for n=1:100 mj_step(s.m, s.d) end
-                                               #profilerupdate();
-                                               sensorupdate(s)
-                                            end
-                                         end,
-                                         # GLFW.KEY_UP=>(s)->begin  # step back 100
-                                         #    if s.paused
-                                         #       dt = s.m.m[].opt.timestep
-                                         #       s.m.m[].opt.timestep = -dt
-                                         #       #cleartimers(d)
-                                         #       for n=1:100 mj_step(s.m, s.d) end
-                                         #       s.m.m[].opt.timestep = dt
-                                         #       #profilerupdate();
-                                         #       sensorupdate(s)
-                                         #    end
-                                         # end,
-                                         GLFW.KEY_ESCAPE=>(s)->begin  # free camera
-                                            s.cam[]._type = Int(mj.CAMERA_FREE)
-                                         end,
-                                         GLFW.KEY_EQUAL=>(s)->begin  # bigger font
-                                            if fontscale < 200
-                                               fontscale += 50
-                                               mjr_makeContext(s.m.m, s.con, fontscale)
-                                            end
-                                         end,
-                                         GLFW.KEY_MINUS=>(s)->begin  # smaller font
-                                            if fontscale > 100
-                                               fontscale -= 50;
-                                               mjr_makeContext(s.m.m, s.con, fontscale);
-                                            end
-                                         end,
-                                         GLFW.KEY_LEFT_BRACKET=>(s)->begin  # '[' previous fixed camera or free
-                                            fixedcam = s.cam._type
-                                            if s.m.m[].ncam > 0 && fixedcam == Int(mj.CAMERA_FIXED)
-                                               fixedcamid = s.cam.fixedcamid
-                                               if (fixedcamid  > 0)
-                                                  s.cam[].fixedcamid = fixedcamid-1
-                                               else
-                                                  s.cam[]._type = Int(mj.CAMERA_FREE)
-                                               end
-                                            end
-                                         end,
-                                         GLFW.KEY_RIGHT_BRACKET=>(s)->begin  # ']' next fixed camera
-                                            if s.m.m[].ncam > 0
-                                               fixedcam = s.cam.type
-                                                  fixedcamid = s.cam.fixedcamid
-                                                  if fixedcam != Int(mj.CAMERA_FIXED)
-                                                     s.cam[]._type = Int(mj.CAMERA_FIXED)
-                                                  elseif fixedcamid < s.m.m[].ncam - 1
-                                                     s.cam[].fixedcamid = fixedcamid+1
-                                                  end
-                                               end
-                                            end,
-                                            GLFW.KEY_SEMICOLON=>(s)->begin  # cycle over frame rendering modes
-                                               frame = s.vopt.frame
-                                               s.vopt[].frame = max(0, frame - 1)
-                                            end,
-                                            GLFW.KEY_APOSTROPHE=>(s)->begin  # cycle over frame rendering modes
-                                               frame = s.vopt.frame
-                                               s.vopt[].frame = min(Int(mj.NFRAME)-1, frame+1)
-                                            end,
-                                            GLFW.KEY_PERIOD=>(s)->begin  # cycle over label rendering modes
-                                               label = s.vopt.label
-                                               s.vopt[].label = max(0, label-1)
-                                            end,
-                                            GLFW.KEY_SLASH=>(s)->begin  # cycle over label rendering modes
-                                               label = s.vopt.label
-                                               s.vopt[].label = min(Int(mj.NLABEL)-1, label+1)
-                                            end)
+const keycmds = Dict{GLFW.Key, Function}(
+   GLFW.KEY_F1=>(s)->begin  # help
+      s.showhelp += 1
+      if s.showhelp > 2 s.showhelp = 0 end
+   end,
+   GLFW.KEY_F2=>(s)->begin  # option
+      s.showoption = !s.showoption;
+   end,
+   GLFW.KEY_F3=>(s)->begin  # info
+      s.showinfo = !s.showinfo;
+   end,
+   GLFW.KEY_F4=>(s)->begin  # depth
+      s.showdepth = !s.showdepth;
+   end,
+   GLFW.KEY_F5=>(s)->begin  # toggle full screen
+      s.showfullscreen = !s.showfullscreen;
+      s.showfullscreen ? GLFW.MaximizeWindow(s.window) : GLFW.RestoreWindow(s.window)
+   end,
+   #GLFW.KEY_F6=>(s)->begin  # stereo
+   #   s.stereo = s.scn.stereo == mj.mjSTEREO_NONE ? mjSTEREO_QUADBUFFERED : mj.mjSTEREO_NONE
+   #   s.scn[].stereo
+   #end,
+   GLFW.KEY_F7=>(s)->begin  # sensor figure
+      s.showsensor = !s.showsensor;
+   end,
+   GLFW.KEY_F8=>(s)->begin  # profiler
+      s.showprofiler = !s.showprofiler;
+   end,
+   GLFW.KEY_ENTER=>(s)->begin  # slow motion
+      s.slowmotion = !s.slowmotion;
+      s.slowmotion ? println("Slow Motion Mode!") : println("Normal Speed Mode!")
+   end,
+   GLFW.KEY_SPACE=>(s)->begin  # pause
+      s.paused = !s.paused
+      s.paused ? println("Paused") : println("Running")
+   end,
+   GLFW.KEY_V=>(s)->begin
+      if s.record == nothing
+         s.record = 1
+         println("Recording")
+      else
+         s.record = nothing
+         encodevideo(s, imgstack)
+      end
+   end,
+   GLFW.KEY_PAGE_UP=>(s)->begin    # previous keyreset
+      s.keyreset = min(s.m.m[].nkey - 1, s.keyreset + 1)
+   end,
+   GLFW.KEY_PAGE_DOWN=>(s)->begin  # next keyreset
+      s.keyreset = max(-1, s.keyreset - 1)
+   end,
+   # continue with reset
+   GLFW.KEY_BACKSPACE=>(s)->begin  # reset
+      mj_resetData(s.m.m, s.d.d)
+      if s.keyreset >= 0 && s.keyreset < s.m.m[].nkey
+         s.d[].time = s.m.key_time[s.keyreset+1]
+         s.d.qpos[:] = s.m.key_qpos[:,s.keyreset+1]
+         s.d.qvel[:] = s.m.key_qvel[:,s.keyreset+1]
+         s.d.act[:]  = s.m.key_act[:,s.keyreset+1]
+      end
+      mj_forward(s.m, s.d)
+      #profilerupdate()
+      sensorupdate(s)
+   end,
+   GLFW.KEY_RIGHT=>(s)->begin  # step forward
+      if s.paused
+         mj_step(s.m, s.d)
+         #profilerupdate()
+         sensorupdate(s)
+      end
+   end,
+   GLFW.KEY_LEFT=>(s)->begin  # step back
+   #    if s.paused
+   #       dt = s.m.m[].opt.timestep
+   #       s.m.m[].opt.timestep = -dt
+   #       #cleartimers(s.d);
+   #       mj_step(s.m, s.d);
+   #       s.m.m[].opt.timestep = dt
+   #       #profilerupdate()
+   #       sensorupdate(s)
+   #    end
+   end,
+   GLFW.KEY_DOWN=>(s)->begin  # step forward 100
+      if s.paused
+         #cleartimers(d);
+         for n=1:100 mj_step(s.m, s.d) end
+         #profilerupdate();
+         sensorupdate(s)
+      end
+   end,
+   GLFW.KEY_UP=>(s)->begin  # step back 100
+   #    if s.paused
+   #       dt = s.m.m[].opt.timestep
+   #       s.m.m[].opt.timestep = -dt
+   #       #cleartimers(d)
+   #       for n=1:100 mj_step(s.m, s.d) end
+   #       s.m.m[].opt.timestep = dt
+   #       #profilerupdate();
+   #       sensorupdate(s)
+   #    end
+   end,
+   GLFW.KEY_ESCAPE=>(s)->begin  # free camera
+      s.cam[]._type = Int(mj.CAMERA_FREE)
+   end,
+   GLFW.KEY_EQUAL=>(s)->begin  # bigger font
+      if fontscale < 200
+         fontscale += 50
+         mjr_makeContext(s.m.m, s.con, fontscale)
+      end
+   end,
+   GLFW.KEY_MINUS=>(s)->begin  # smaller font
+      if fontscale > 100
+         fontscale -= 50;
+         mjr_makeContext(s.m.m, s.con, fontscale);
+      end
+   end,
+   GLFW.KEY_LEFT_BRACKET=>(s)->begin  # '[' previous fixed camera or free
+      fixedcam = s.cam._type
+      if s.m.m[].ncam > 0 && fixedcam == Int(mj.CAMERA_FIXED)
+         fixedcamid = s.cam.fixedcamid
+         if (fixedcamid  > 0)
+            s.cam[].fixedcamid = fixedcamid-1
+         else
+            s.cam[]._type = Int(mj.CAMERA_FREE)
+         end
+      end
+   end,
+   GLFW.KEY_RIGHT_BRACKET=>(s)->begin  # ']' next fixed camera
+      if s.m.m[].ncam > 0
+         fixedcam = s.cam.type
+            fixedcamid = s.cam.fixedcamid
+            if fixedcam != Int(mj.CAMERA_FIXED)
+               s.cam[]._type = Int(mj.CAMERA_FIXED)
+            elseif fixedcamid < s.m.m[].ncam - 1
+               s.cam[].fixedcamid = fixedcamid+1
+            end
+         end
+      end,
+   GLFW.KEY_SEMICOLON=>(s)->begin  # cycle over frame rendering modes
+      frame = s.vopt.frame
+      s.vopt[].frame = max(0, frame - 1)
+   end,
+   GLFW.KEY_APOSTROPHE=>(s)->begin  # cycle over frame rendering modes
+      frame = s.vopt.frame
+      s.vopt[].frame = min(Int(mj.NFRAME)-1, frame+1)
+   end,
+   GLFW.KEY_PERIOD=>(s)->begin  # cycle over label rendering modes
+      label = s.vopt.label
+      s.vopt[].label = max(0, label-1)
+   end,
+   GLFW.KEY_SLASH=>(s)->begin  # cycle over label rendering modes
+      label = s.vopt.label
+      s.vopt[].label = min(Int(mj.NLABEL)-1, label+1)
+   end
+)
 
 ##################################################### functions
+function encodevideo(s::mjSim, imgstack)
+    s.record = nothing
+    vfname = "testvideo.mp4"
+    props = [:priv_data => ("crf"=>"22","preset"=>"medium")]
+    println("Saving video to: $vfname")
+    encodedvideopath = VideoIO.encodevideo(vfname, imgstack, framerate=30, AVCodecContextProperties=props, silent=true)
+    println("Done writing video!")
+end
+
 function alignscale(s::mjSim)
    s.cam[].lookat = s.m.m[].stat.center
    s.cam[].distance = 1.5*s.m.m[].stat.extent
@@ -293,6 +297,8 @@ end
 
 # update sensor figure
 function sensorupdate(s::mjSim)
+   #=
+   println("sensorupdate")
    maxline = 10
 
    for i=1:maxline # clear linepnt
@@ -340,6 +346,7 @@ function sensorupdate(s::mjSim)
              min(Int(mj.MAXLINEPNT)-1, p+2dim),
              lineid)
    end
+   =#
 end
 
 # show sensor figure
@@ -363,6 +370,7 @@ function mykeyboard(s::mjSim, window::GLFW.Window,
       keycmds[key](s) # call anon function in Dict with s struct passed in
    catch
       # control keys
+      #println("key: $key, scancode: $scancode, act: $act, mods: $mods")
       if mods & GLFW.MOD_CONTROL > 0
          if key == GLFW.KEY_A
             alignscale(s)
@@ -372,14 +380,14 @@ function mykeyboard(s::mjSim, window::GLFW.Window,
             #   loadmodel(window, s.)
          elseif key == GLFW.KEY_Q
             if s.record != nothing
-               close(s.record)
                s.record = nothing
+               encodevideo(s, imgstack)
             end
             GLFW.SetWindowShouldClose(window, true)
          end
       end
 
-      # toggle visualiztion flag
+      # toggle visualization flag
       for i=1:Int(mj.NVISFLAG)
          if Int(key) == Int(mj.VISSTRING[i,3][1])
             flags = MVector(s.vopt[].flags)
@@ -619,8 +627,7 @@ function render(s::PupperSim.mjSim, w::GLFW.Window)
    smallrect = mjrRect(Cint(0), Cint(0), Cint(wi), Cint(hi))
 
    # update scene
-   mjv_updateScene(s.m, s.d,
-                   s.vopt, s.pert, s.cam, Int(mj.CAT_ALL), s.scn)
+   mjv_updateScene(s.m, s.d, s.vopt, s.pert, s.cam, Int(mj.CAT_ALL), s.scn)
    # render
    mjr_render(rect, s.scn, s.con)
 
@@ -631,14 +638,14 @@ function render(s::PupperSim.mjSim, w::GLFW.Window)
        if s.record <= 300
            s.record += 1
 
-           println("Type of s.vidbuff: $(typeof(s.vidbuff)), size: $(size(s.vidbuff))")
+           #println("Type of s.vidbuff: $(typeof(s.vidbuff)), size: $(size(s.vidbuff))")    // Type of s.vidbuff: Array{ColorTypes.RGB{FixedPointNumbers.Normed{UInt8,8}},1}, size: (14745600,)
            mjr_readPixels(reinterpret(UInt8, s.vidbuff), C_NULL, rect, s.con);
 
            buf = s.vidbuff[1:rect.width*rect.height]
-           println("Type of buf: $(typeof(buf)), size: $(size(buf))")
+           #println("Type of buf: $(typeof(buf)), size: $(size(buf))")                      // Type of buf:       Array{ColorTypes.RGB{FixedPointNumbers.Normed{UInt8,8}},1}, size: (1080000,)
 
            img = permuteddimsview(reshape(buf, rect.width, rect.height), (2,1))[end:-1:1,:]
-           println("Type of img: $(typeof(img)), size: $(size(img))")
+           #println("Type of img: $(typeof(img)), size: $(size(img))")                      // Type of img:       Array{ColorTypes.RGB{FixedPointNumbers.Normed{UInt8,8}},2}, size: (900, 1200)
 
            if rect.height % 2 != 0
               push!(imgstack, img[1:end-1,:])
@@ -648,11 +655,7 @@ function render(s::PupperSim.mjSim, w::GLFW.Window)
 
        else
            s.record = nothing
-           vfname = "testvideo.mp4"
-           props = [:priv_data => ("crf"=>"22","preset"=>"medium")]
-           println("render Writing $vfname")
-           encodedvideopath = VideoIO.encodevideo(vfname,imgstack,framerate=30,AVCodecContextProperties=props, silent=true)
-           println("render Created: $encodedvideopath")
+           encodevideo(s, imgstack)
        end
    end
 
@@ -710,8 +713,8 @@ function simstep(s::mjSim)
    end
 end
 
-function simulate(file)
-   s = loadmodel(file, 1200, 900)
+function simulate(; modelpath = joinpath(dirname(pathof(@__MODULE__)), "../model/Pupper.xml"))
+   s = loadmodel(modelpath, 1200, 900)
    # Loop until the user closes the window
    PupperSim.alignscale(s)
    while !GLFW.WindowShouldClose(s.window)
