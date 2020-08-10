@@ -716,19 +716,43 @@ end
 
 function simulate(
       modelpath = joinpath(dirname(pathof(@__MODULE__)), "../model/Pupper.xml"),
-      controller::QuadrupedController.Controller = QuadrupedController.Controller()
+      controller = Controller(Configuration(), four_legs_inverse_kinematics,)
    )
-   println(controller)
-   s = loadmodel(modelpath, 1200, 900)
-   # Loop until the user closes the window
-   PupperSim.alignscale(s)
-   while !GLFW.WindowShouldClose(s.window)
+   # Workaround: Create controller state and command objects
+   controller, state, command = create_controller_objects(0.5)  # Pupper walks in circles with yaw set to 0.5
 
+   config = controller.config
+   println("Summary of gait parameters:")
+   println("overlap time: "   , config.overlap_time)
+   println("swing time: "     , config.swing_time)
+   println("z clearance: "    , config.z_clearance)
+   println("x shift: "        , config.x_shift)
+
+   println("horizontal_velocity: "  , command.horizontal_velocity)
+   println("yaw_rate: "             , command.yaw_rate)
+
+   # Run the simulation
+   s = loadmodel(modelpath, 1200, 900)
+   PupperSim.alignscale(s)
+
+   # Loop until the user closes the window
+   while !GLFW.WindowShouldClose(s.window)
+      # Step the controller forward by dt
+      controller.run(state, command)
+
+      # Apply updated joint angles to sim
+      s.d.ctrl .= unsafe_wrap(Array{Float64,1}, pointer(state.joint_angles), 12)
+
+      # Subtract the l1 joint angles from the l2 joint angles to fake the kinematics of the parallel linkage
+      s.d.ctrl[[3,6,9,12]] .= s.d.ctrl[[3,6,9,12]] - s.d.ctrl[[2,5,8,11]]
+
+      # Simulate physics for 1/240 seconds (the default timestep)
       simstep(s)
 
       render(s, s.window)
       GLFW.PollEvents()
    end
+
    GLFW.DestroyWindow(s.window)
 end
 
