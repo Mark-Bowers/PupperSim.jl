@@ -57,7 +57,7 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
   <mesh file="LowerLeg.stl"/>
   <texture type="2d" file="BrushedAluminum.png"/>
   <texture type="2d" file="Oak.png"/>
-  <texture type="2d" file="CarbonFiber.png" name="CarbonFiber2D"/>
+  <texture type="2d" file="CarbonFiber2D.png" name="CarbonFiber2D"/>
   <texture type="cube" file="CarbonFiber.png" gridsize="3 4" gridlayout=".U..LFRB.D.."/>
   <texture type="cube" file="CLS6336HV.png"/>
   <material name="BrushedAluminum" texture="BrushedAluminum" specular="0.9" shininess="0.9" reflectance="0.3"/>
@@ -116,10 +116,10 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
             <joint axis="1 0 0" name="fr_x" pos="0 0 0" limited="true" range="-1.57 1.57" type="hinge" damping="1.049"/>
             <body name="fr" pos="0 -0.03 0">
                 <joint axis="0 1 0" name="fr_y" pos="0 0 0" limited="true" range="-1.57 1.57" type="hinge" damping="1.049"/>
-                <geom axisangle="0 1 0 0" name="fr" fromto="0 0 0 0 0 -0.125" size="0.01" type="capsule" rgba = "1 0 0 0.5" density="50"/>
+                <geom axisangle="0 1 0 0" name="fr" fromto="0 0 0 0 0 -0.125" size="0.01" type="capsule" material="CarbonFiber2D" density="50"/>
                 <body name="fr2" pos="0 0 -0.1235">
                     <joint axis="0 1 0" name="fr_y2" pos="0 0 0" limited="true" range="-3.14 0.0" type="hinge" damping="1.049"/>
-                    <geom axisangle="0 1 0 0" name="fr_l2" fromto="0 0 0 0 0 -0.125" size="0.01" type="capsule" rgba="1 0 0 0.5" density="50"/>
+                    <geom axisangle="0 1 0 0" name="fr_l2" fromto="0 0 0 0 0 -0.125" size="0.01" type="capsule" material="CarbonFiber2D" density="50"/>
                 </body>
             </body>
         </body>
@@ -134,10 +134,10 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
             <joint axis="1 0 0" name="fl_x" pos="0 0 0" limited="true" range="-1.57 1.57" type="hinge" damping="1.049"/>
             <body name="fl" pos="0 0.03 0">
                 <joint axis="0 1 0" name="fl_y" pos="0 0 0" limited="true" range="-1.57 1.57" type="hinge" damping="1.049"/>
-                <geom axisangle="0 1 0 0" name="fl" fromto="0 0 0 0 0 -0.125" size="0.01" type="capsule" rgba = "1 0 0 0.5" density="50"/>
+                <geom axisangle="0 1 0 0" name="fl" fromto="0 0 0 0 0 -0.125" size="0.01" type="capsule" material="CarbonFiber2D" density="50"/>
                 <body name="fl2" pos="0 0 -0.1235">
                     <joint axis="0 1 0" name="fl_y2" pos="0 0 0" limited="true" range="-3.14 0.0" type="hinge" damping="1.049"/>
-                    <geom axisangle="0 1 0 0" name="fl_l2" fromto="0 0 0 0 0 -0.125" size="0.01" type="capsule" rgba="1 0 0 0.5" density="50"/>
+                    <geom axisangle="0 1 0 0" name="fl_l2" fromto="0 0 0 0 0 -0.125" size="0.01" type="capsule" material="CarbonFiber2D" density="50"/>
                 </body>
             </body>
         </body>
@@ -152,10 +152,10 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
             <joint axis="1 0 0" name="br_x" pos="0 0 0" limited="true" range="-1.57 1.57" type="hinge" damping="1.049"/>
             <body name="br" pos="0 -0.03 0">
                 <joint axis="0 1 0" name="br_y" pos="0 0 0" limited="true" range="-1.57 1.57" type="hinge" damping="1.049"/>
-                <geom axisangle="0 1 0 0" name="br" fromto="0 0 0 0 0 -0.125" size="0.01" type="capsule" rgba = "1 0 0 0.5" density="50"/>
+                <geom axisangle="0 1 0 0" name="br" fromto="0 0 0 0 0 -0.125" size="0.01" type="capsule" material="CarbonFiber2D" density="50"/>
                 <body name="br2" pos="0 0 -0.1235">
                     <joint axis="0 1 0" name="br_y2" pos="0 0 0" limited="true" range="-3.14 0.0" type="hinge" damping="1.049"/>
-                    <geom axisangle="0 1 0 0" name="br_l2" fromto="0 0 0 0 0 -0.125" size="0.01" type="capsule" rgba="1 0 0 0.5" density="50"/>
+                    <geom axisangle="0 1 0 0" name="br_l2" fromto="0 0 0 0 0 -0.125" size="0.01" type="capsule" material="CarbonFiber2D" density="50"/>
                 </body>
             </body>
         </body>
@@ -170,10 +170,10 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
             <joint axis="1 0 0" name="bl_x" pos="0 0 0" limited="true" range="-1.57 1.57" type="hinge" damping="1.049"/>
             <body name="bl" pos="0 0.03 0">
                 <joint axis="0 1 0" name="bl_y" pos="0 0 0" limited="true" range="-1.57 1.57" type="hinge" damping="1.049"/>
-                <geom axisangle="0 1 0 0" name="bl" fromto="0 0 0 0 0 -0.125" size="0.01" type="capsule" rgba = "1 0 0 0.5" density="50"/>
+                <geom axisangle="0 1 0 0" name="bl" fromto="0 0 0 0 0 -0.125" size="0.01" type="capsule" material="CarbonFiber2D" density="50"/>
                 <body name="bl2" pos="0 0 -0.1235">
                     <joint axis="0 1 0" name="bl_y2" pos="0 0 0" limited="true" range="-3.14 0.0" type="hinge" damping="1.049"/>
-                    <geom axisangle="0 1 0 0" name="bl_l2" fromto="0 0 0 0 0 -0.125" size="0.01" type="capsule" rgba="1 0 0 0.5" density="50"/>
+                    <geom axisangle="0 1 0 0" name="bl_l2" fromto="0 0 0 0 0 -0.125" size="0.01" type="capsule" material="CarbonFiber2D" density="50"/>
                 </body>
             </body>
         </body>
