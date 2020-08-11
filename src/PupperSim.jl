@@ -636,7 +636,7 @@ function render(s::PupperSim.mjSim, w::GLFW.Window)
        #println("rect: $rect.width x $rect.height")
        #mjr_readPixels(s.vidbuff, C_NULL, rect, s.con);
        #write(s.record, s.vidbuff[1:3*rect.width*rect.height]);
-       if s.record <= 300
+       if s.record <= 600
            s.record += 1
 
            #println("Type of s.vidbuff: $(typeof(s.vidbuff)), size: $(size(s.vidbuff))")    // Type of s.vidbuff: Array{ColorTypes.RGB{FixedPointNumbers.Normed{UInt8,8}},1}, size: (14745600,)
@@ -714,22 +714,48 @@ function simstep(s::mjSim)
    end
 end
 
+function toggle_activate(controller, state, command)
+   command.activate_event = 1
+   controller.run(state, command)
+   command.activate_event = 0
+end
+
+function toggle_trot(controller, state, command)
+   command.trot_event = 1
+   controller.run(state, command)
+   command.trot_event = 0
+end
+
+const crouch_height = -0.08
+const normal_height = -0.16
+
 function simulate(
       modelpath = joinpath(dirname(pathof(@__MODULE__)), "../model/Pupper.xml"),
       controller = Controller(Configuration(), four_legs_inverse_kinematics,)
    )
    # Workaround: Create controller state and command objects
-   controller, state, command = create_controller_objects(0.5)  # Pupper walks in circles with yaw set to 0.5
+   controller, state = create_controller_objects()
 
    config = controller.config
+   config.z_clearance = 0.01 # height to pick up each foot during trot
+
    println("Summary of gait parameters:")
    println("overlap time: "   , config.overlap_time)
    println("swing time: "     , config.swing_time)
    println("z clearance: "    , config.z_clearance)
    println("x shift: "        , config.x_shift)
 
+   # Emulate the joystick inputs required to activate the robot
+   # TODO Add support for user input or an external commander
+   command = Command()
+   command.horizontal_velocity = [0.4, 0]
+   command.yaw_rate = 0.5  # Pupper walks in circles with yaw set to non-zero value
+   command.height = crouch_height
+   command.pitch = 0.1     
+
    println("horizontal_velocity: "  , command.horizontal_velocity)
    println("yaw_rate: "             , command.yaw_rate)
+   println("height: "               , command.height)
 
    # Run the simulation
    s = loadmodel(modelpath, 1200, 900)
@@ -737,6 +763,27 @@ function simulate(
 
    # Loop until the user closes the window
    while !GLFW.WindowShouldClose(s.window)
+      elapsed_time = round(Int, s.d.d[].time * 1000)  # elapsed time in milliseconds (non-paused simulation)
+
+      # check every 100 milliseconds for another action to take
+      if !s.paused && elapsed_time % 100 == 0 && elapsed_time > 0
+
+         if elapsed_time == 100
+            toggle_activate(controller, state, command)
+         end
+         
+         if elapsed_time % 2000 == 0 && command.height > -0.1
+            command.height = normal_height
+            command.pitch = 0.0
+            toggle_trot(controller, state, command)
+          end
+
+         if elapsed_time % 10000 == 0
+            command.height = crouch_height
+            toggle_trot(controller, state, command)
+         end
+       end
+
       # Step the controller forward by dt
       controller.run(state, command)
 
