@@ -733,9 +733,6 @@ function simulate(
       modelpath = joinpath(dirname(pathof(@__MODULE__)), "../model/Pupper.xml"),
       controller = Controller(Configuration(), four_legs_inverse_kinematics,)
    )
-   # Workaround: Create controller state and command objects
-   controller, state = create_controller_objects()
-
    config = controller.config
    config.z_clearance = 0.01 # height to pick up each foot during trot
 
@@ -757,6 +754,8 @@ function simulate(
    println("yaw_rate: "             , command.yaw_rate)
    println("height: "               , command.height)
 
+   state = State()   # holds the runtime state of the simulator
+
    # Run the simulation
    s = loadmodel(modelpath, 1200, 900)
    PupperSim.alignscale(s)
@@ -767,6 +766,7 @@ function simulate(
 
       # check every 100 milliseconds for another action to take
       if !s.paused && elapsed_time % 100 == 0 && elapsed_time > 0
+         #println(elapsed_time, ": ", elapsed_time, "\tframecount: ", round(Int, s.framecount))
 
          if elapsed_time == 100
             toggle_activate(controller, state, command)
@@ -801,6 +801,8 @@ function simulate(
    end
 
    GLFW.DestroyWindow(s.window)
+
+   return nothing
 end
 
 end
