@@ -10,9 +10,11 @@ using QuadrupedController
 
 ##################################################### globals
 const fontscale = mj.FONTSCALE_200 # can be 100, 150, 200
-const maxgeom       = 5000 # preallocated geom array in mjvScene
-#const syncmisalign  = 0.1  # maximum time mis-alignment before re-sync
-#const refreshfactor = 0.7  # fraction of refresh available for simulation
+const maxgeom       = 5000    # preallocated geom array in mjvScene
+#const syncmisalign  = 0.1    # maximum time mis-alignment before re-sync
+#const refreshfactor = 0.7    # fraction of refresh available for simulation
+const max_video_duration = 30 # seconds
+const max_video_frames = 60 * max_video_duration
 
 imgstack = []
 #nframes = 0
@@ -71,14 +73,14 @@ mutable struct mjSim
 
    function mjSim(m::jlModel, d::jlData, name::String; width=0, height=0)
       vmode = GLFW.GetVideoMode(GLFW.GetPrimaryMonitor())
-      w = width > 0 ? width : floor(2*vmode.width / 3)
-      h = height > 0 ? height : floor(2*vmode.height / 3)
+      w = width > 0 ? width : Int(floor(2*vmode.width / 3))
+      h = height > 0 ? height : Int(floor(2*vmode.height / 3))
 
       new(0.0, 0.0, false, false, false, GLFW.MOUSE_BUTTON_1, 0.0,
          vmode.refreshrate,
          0, false, false, false, false, false, true, true, 0,
-         nothing, #open("/tmp/test.bin","w"),
-         Vector{RGB{N0f8}}(undef, 5120 * 2880),
+         nothing,
+         Vector{RGB{N0f8}}(undef, vmode.width * vmode.height), # Probably not good to switch to a higher res monitor after initialization
          0.0, 0, 0,
          Ref(mjvScene()),
          Ref(mjvCamera()),
@@ -253,12 +255,17 @@ const keycmds = Dict{GLFW.Key, Function}(
 
 ##################################################### functions
 function encodevideo(s::mjSim, imgstack)
-    s.record = nothing
-    vfname = "testvideo.mp4"
-    props = [:priv_data => ("crf"=>"22","preset"=>"medium")]
-    println("Saving video to: $vfname")
-    encodedvideopath = VideoIO.encodevideo(vfname, imgstack, framerate=30, AVCodecContextProperties=props, silent=true)
-    println("Done writing video!")
+   # Primarily see avio.jl reference in render function below. Also of potential interest:
+   # https://github.com/JuliaIO/VideoIO.jl/tree/master/examples
+   # https://discourse.julialang.org/t/creating-a-video-from-a-stack-of-images/646/7
+
+   s.record = nothing
+   vfname = "puppersim.mp4"
+   props = [:priv_data => ("crf"=>"22","preset"=>"medium")]
+   #println("sizeof(imgstack): ", sizeof(imgstack))
+   println("Saving video to: $vfname")
+   @time encodedvideopath = VideoIO.encodevideo(vfname, imgstack, framerate=30, AVCodecContextProperties=props, silent=false)
+   println("Done writing video!")
 end
 
 function alignscale(s::mjSim)
@@ -375,10 +382,12 @@ function mykeyboard(s::mjSim, window::GLFW.Window,
       if mods & GLFW.MOD_CONTROL > 0
          if key == GLFW.KEY_A
             alignscale(s)
+            return
          elseif key == GLFW.KEY_P
             println(s.d.qpos)
             #elseif key == GLFW.KEY_L && lastfile[0]
             #   loadmodel(window, s.)
+            return
          elseif key == GLFW.KEY_Q
             if s.record != nothing
                s.record = nothing
@@ -386,39 +395,43 @@ function mykeyboard(s::mjSim, window::GLFW.Window,
             end
             GLFW.SetWindowShouldClose(window, true)
          end
-      end
+      else  # <Ctrl> key not pressed
+         #println("NVISFLAG: $(Int(mj.NVISFLAG)), mj.VISSTRING: $(mj.VISSTRING)\nNRNDFLAG: $(Int(mj.NRNDFLAG)), RNDSTRING: $(mj.RNDSTRING), NGROUP: $(mj.NGROUP)")
 
-      # toggle visualization flag
-      for i=1:Int(mj.NVISFLAG)
-         if Int(key) == Int(mj.VISSTRING[i,3][1])
-            flags = MVector(s.vopt[].flags)
-            flags[i] = flags[i] == 0 ? 1 : 0
-            s.vopt[].flags = flags
-            return
-         end
-      end
-      # toggle rendering flag
-      for i=1:Int(mj.NRNDFLAG)
-         if Int(key) == Int(mj.RNDSTRING[i,3][1])
-            flags = MVector(s.scn[].flags)
-            flags[i] = flags[i] == 0 ? 1 : 0
-            s.scn[].flags = flags
-            return
-         end
-      end
-      # toggle geom/site group
-      for i=1:Int(mj.NGROUP)
-         if Int(key) == i + Int('0')
-            if mods & GLFW.MOD_SHIFT == true
-               sitegroup = MVector(s.vopt[].sitegroup)
-               sitegroup[i] = sitegroup[i] > 0 ? 0 : 1
-               s.vopt[].sitegroup[i] = sitegroup
+         # toggle visualization flag
+         # NVISFLAG: 22, VISSTRING: ["Convex Hull" "0" "H"; "Texture" "1" "X"; "Joint" "0" "J"; "Actuator" "0" "U"; "Camera" "0" "Q"; "Light" "0" "Z"; "Tendon" "0" "V"; "Range Finder" "0" "Y"; "Constraint" "0" "N"; "Inertia" "0" "I"; "SCL Inertia" "0" "S"; "Perturb Force" "0" "B"; "Perturb Object" "1" "O"; "Contact Point" "0" "C"; "Contact Force" "0" "F"; "Contact Split" "0" "P"; "Transparent" "0" "T"; "Auto Connect" "0" "A"; "Center of Mass" "0" "M"; "Select Point" "0" "E"; "Static Body" "0" "D"; "Skin" "0" ";"]
+         for i=1:Int(mj.NVISFLAG)
+            if Int(key) == Int(mj.VISSTRING[i,3][1])
+               flags = MVector(s.vopt[].flags)
+               flags[i] = flags[i] == 0 ? 1 : 0
+               s.vopt[].flags = flags
                return
-            else
-               geomgroup = MVector(s.vopt[].geomgroup)
-               geomgroup[i] = geomgroup[i] > 0 ? 0 : 1
-               s.vopt[].geomgroup = geomgroup
+            end
+         end
+         # toggle rendering flag
+         # NRNDFLAG: 9,  RNDSTRING: ["Shadow" "1" "S"; "Wireframe" "0" "W"; "Reflection" "1" "R"; "Additive" "0" "L"; "Skybox" "1" "K"; "Fog" "0" "G"; "Haze" "1" "/"; "Segment" "0" ","; "Id Color" "0" "."], NGROUP: 6
+         for i=1:Int(mj.NRNDFLAG)
+            if Int(key) == Int(mj.RNDSTRING[i,3][1])
+               flags = MVector(s.scn[].flags)
+               flags[i] = flags[i] == 0 ? 1 : 0
+               s.scn[].flags = flags
                return
+            end
+         end
+         # toggle geom/site group
+         for i=1:Int(mj.NGROUP)
+            if Int(key) == i + Int('0')
+               if mods & GLFW.MOD_SHIFT == true
+                  sitegroup = MVector(s.vopt[].sitegroup)
+                  sitegroup[i] = sitegroup[i] > 0 ? 0 : 1
+                  s.vopt[].sitegroup[i] = sitegroup
+                  return
+               else
+                  geomgroup = MVector(s.vopt[].geomgroup)
+                  geomgroup[i] = geomgroup[i] > 0 ? 0 : 1
+                  s.vopt[].geomgroup = geomgroup
+                  return
+               end
             end
          end
       end
@@ -636,11 +649,14 @@ function render(s::PupperSim.mjSim, w::GLFW.Window)
        #println("rect: $rect.width x $rect.height")
        #mjr_readPixels(s.vidbuff, C_NULL, rect, s.con);
        #write(s.record, s.vidbuff[1:3*rect.width*rect.height]);
-       if s.record <= 600
+       if s.record <= max_video_frames
            s.record += 1
 
            #println("Type of s.vidbuff: $(typeof(s.vidbuff)), size: $(size(s.vidbuff))")    // Type of s.vidbuff: Array{ColorTypes.RGB{FixedPointNumbers.Normed{UInt8,8}},1}, size: (14745600,)
            mjr_readPixels(reinterpret(UInt8, s.vidbuff), C_NULL, rect, s.con);
+
+           # Reference: @testset "Encoding video across all supported colortypes" block in file avio.jl:
+           # (https://github.com/JuliaIO/VideoIO.jl/blob/master/test/avio.jl)
 
            buf = s.vidbuff[1:rect.width*rect.height]
            #println("Type of buf: $(typeof(buf)), size: $(size(buf))")                      // Type of buf:       Array{ColorTypes.RGB{FixedPointNumbers.Normed{UInt8,8}},1}, size: (1080000,)
@@ -664,7 +680,20 @@ function render(s::PupperSim.mjSim, w::GLFW.Window)
    GLFW.SwapBuffers(w)
 end
 
-function loadmodel(modelfile, width, height)
+# Load the model (contains robot and its environment)
+# width and height control the visual resolution of the simulation
+# 4//3 aspect ratio:
+#s = loadmodel(modelpath, 1200, 900) # 3.09 MB/frame, raw video size: 2.7 GB
+#s = loadmodel(modelpath, 1024, 768) # 2.25 MB/frame, raw video size: 2.0 GB
+#s = loadmodel(modelpath,  800, 600) # 1.37 MB/frame, raw video size: 1.2 GB
+#s = loadmodel(modelpath,  512, 384) # 0.56 MB/frame, raw video size: 0.5 GB
+#s = loadmodel(modelpath,  400, 300) # 0.34 MB/frame, raw video size: 0.3 GB
+# 1920//1080 == 1920//1080 == 16//9 aspect ratio
+
+function loadmodel(
+      modelfile = joinpath(dirname(pathof(@__MODULE__)), "../model/Pupper.xml"),
+      width = 1920, height = 1080
+   )
    ptr_m = mj_loadXML(modelfile, C_NULL)
    ptr_d = mj_makeData(ptr_m)
    m, d = mj.mapmujoco(ptr_m, ptr_d)
@@ -677,9 +706,54 @@ function loadmodel(modelfile, width, height)
    return s
 end
 
-function simstep(s::mjSim)
+const crouch_height = -0.08
+const normal_height = -0.16
+
+function step_script(s::mjSim, robot)
+   elapsed_time = round(Int, s.d.d[].time * 1000)  # elapsed time in milliseconds (non-paused simulation)
+
+   # check every 100 milliseconds for another action to take
+   if !s.paused && elapsed_time % 100 == 0 && elapsed_time > 0
+      #println(elapsed_time, ": ", elapsed_time, "\tframecount: ", round(Int, s.framecount))
+
+      if elapsed_time == 100
+         toggle_activate(robot)
+      end
+
+      if elapsed_time % 2000 == 0 && robot.command.height > -0.1
+         robot.command.height = normal_height
+         robot.command.pitch = 0.0
+         toggle_trot(robot)
+         end
+
+      if elapsed_time % 10000 == 0
+         robot.command.height = crouch_height
+         toggle_trot(robot)
+      end
+   end
+end
+
+# Simulate physics for 1/240 seconds (the default timestep)
+function simstep(s::mjSim, robot)
+   # Execute next step in command script
+   step_script(s::mjSim, robot)
+
+   # Step the controller forward by dt
+   run!(robot)
+
+   # Create local simulator d (data), and m (model) variables
    d = s.d
    m = s.m
+
+   # Apply updated joint angles to sim
+   d.ctrl .= unsafe_wrap(Array{Float64,1}, pointer(robot.state.joint_angles), 12)
+
+   # If Pupper controller, subtract the l1 joint angles from the l2 joint angles
+   # to fake the kinematics of the parallel linkage
+   if true  # TODO: verify that the controller is a Pupper quadruped controller
+      d.ctrl[[3,6,9,12]] .= d.ctrl[[3,6,9,12]] - d.ctrl[[2,5,8,11]]
+   end
+
    if s.paused
       if s.pert[].active > 0
          mjv_applyPerturbPose(m, d, s.pert, 1)  # move mocap and dynamic bodies
@@ -706,7 +780,7 @@ function simstep(s::mjSim)
             mjv_applyPerturbForce(m, d, s.pert)
          end
 
-         mj_step(s.m, s.d)
+         mj_step(m, d)
 
          # break on reset
          (d.d[].time < startsimtm) && break
@@ -714,95 +788,29 @@ function simstep(s::mjSim)
    end
 end
 
-function toggle_activate(controller, state, command)
-   command.activate_event = 1
-   controller.run(state, command)
-   command.activate_event = 0
+function PupperRobot(velocity = 0.4, yaw_rate = 0.5)
+   config = Configuration()
+   config.z_clearance = 0.01     # height to pick up each foot during trot
+
+   command = Command([velocity, 0], yaw_rate, crouch_height)
+   command.pitch = 0.1
+
+   # Create the robot (controller and controller state)
+   Robot(config, command)
 end
 
-function toggle_trot(controller, state, command)
-   command.trot_event = 1
-   controller.run(state, command)
-   command.trot_event = 0
-end
-
-const crouch_height = -0.08
-const normal_height = -0.16
-
-function simulate(
-      modelpath = joinpath(dirname(pathof(@__MODULE__)), "../model/Pupper.xml"),
-      controller = Controller(Configuration(), four_legs_inverse_kinematics,)
-   )
-   config = controller.config
-   config.z_clearance = 0.01 # height to pick up each foot during trot
-
-   println("Summary of gait parameters:")
-   println("overlap time: "   , config.overlap_time)
-   println("swing time: "     , config.swing_time)
-   println("z clearance: "    , config.z_clearance)
-   println("x shift: "        , config.x_shift)
-
-   # Emulate the joystick inputs required to activate the robot
-   # TODO Add support for user input or an external commander
-   command = Command()
-   command.horizontal_velocity = [0.4, 0]
-   command.yaw_rate = 0.5  # Pupper walks in circles with yaw set to non-zero value
-   command.height = crouch_height
-   command.pitch = 0.1     
-
-   println("horizontal_velocity: "  , command.horizontal_velocity)
-   println("yaw_rate: "             , command.yaw_rate)
-   println("height: "               , command.height)
-
-   state = State()   # holds the runtime state of the simulator
-
-   # Run the simulation
-   s = loadmodel(modelpath, 1200, 900)
-   PupperSim.alignscale(s)
-
+# Run the simulation
+function simulate(s = loadmodel(), robot = PupperRobot())
    # Loop until the user closes the window
    while !GLFW.WindowShouldClose(s.window)
-      elapsed_time = round(Int, s.d.d[].time * 1000)  # elapsed time in milliseconds (non-paused simulation)
-
-      # check every 100 milliseconds for another action to take
-      if !s.paused && elapsed_time % 100 == 0 && elapsed_time > 0
-         #println(elapsed_time, ": ", elapsed_time, "\tframecount: ", round(Int, s.framecount))
-
-         if elapsed_time == 100
-            toggle_activate(controller, state, command)
-         end
-         
-         if elapsed_time % 2000 == 0 && command.height > -0.1
-            command.height = normal_height
-            command.pitch = 0.0
-            toggle_trot(controller, state, command)
-          end
-
-         if elapsed_time % 10000 == 0
-            command.height = crouch_height
-            toggle_trot(controller, state, command)
-         end
-       end
-
-      # Step the controller forward by dt
-      controller.run(state, command)
-
-      # Apply updated joint angles to sim
-      s.d.ctrl .= unsafe_wrap(Array{Float64,1}, pointer(state.joint_angles), 12)
-
-      # Subtract the l1 joint angles from the l2 joint angles to fake the kinematics of the parallel linkage
-      s.d.ctrl[[3,6,9,12]] .= s.d.ctrl[[3,6,9,12]] - s.d.ctrl[[2,5,8,11]]
-
-      # Simulate physics for 1/240 seconds (the default timestep)
-      simstep(s)
-
+      simstep(s, robot)
       render(s, s.window)
       GLFW.PollEvents()
    end
 
    GLFW.DestroyWindow(s.window)
 
-   return nothing
+   return
 end
 
 end
