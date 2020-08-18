@@ -1,5 +1,7 @@
 ﻿module PupperSim
 
+export loadmodel, pupper, simulate
+
 using GLFW
 using MuJoCo
 using StaticArrays
@@ -133,6 +135,7 @@ const keycmds = Dict{GLFW.Key, Function}(
       s.paused = !s.paused
       s.paused ? println("Paused") : println("Running")
    end,
+   #=
    GLFW.KEY_V=>(s)->begin
       if s.record == nothing
          s.record = 1
@@ -142,6 +145,7 @@ const keycmds = Dict{GLFW.Key, Function}(
          encodevideo(s, imgstack)
       end
    end,
+   =#
    GLFW.KEY_PAGE_UP=>(s)->begin    # previous keyreset
       s.keyreset = min(s.m.m[].nkey - 1, s.keyreset + 1)
    end,
@@ -735,23 +739,25 @@ end
 
 # Simulate physics for 1/240 seconds (the default timestep)
 function simstep(s::mjSim, robot)
-   # Execute next step in command script
-   step_script(s::mjSim, robot)
-
-   # Step the controller forward by dt
-   run!(robot)
-
    # Create local simulator d (data), and m (model) variables
    d = s.d
    m = s.m
 
-   # Apply updated joint angles to sim
-   d.ctrl .= unsafe_wrap(Array{Float64,1}, pointer(robot.state.joint_angles), 12)
+   if robot !== nothing
+      # Execute next step in command script
+      step_script(s::mjSim, robot)
 
-   # If Pupper controller, subtract the l1 joint angles from the l2 joint angles
-   # to fake the kinematics of the parallel linkage
-   if true  # TODO: verify that the controller is a Pupper quadruped controller
-      d.ctrl[[3,6,9,12]] .= d.ctrl[[3,6,9,12]] - d.ctrl[[2,5,8,11]]
+      # Step the controller forward by dt
+      run!(robot)
+
+      # Apply updated joint angles to sim
+      d.ctrl .= unsafe_wrap(Array{Float64,1}, pointer(robot.state.joint_angles), 12)
+
+      # If Pupper controller, subtract the l1 joint angles from the l2 joint angles
+      # to fake the kinematics of the parallel linkage
+      if true  # TODO: verify that the controller is a Pupper quadruped controller
+         d.ctrl[[3,6,9,12]] .= d.ctrl[[3,6,9,12]] - d.ctrl[[2,5,8,11]]
+      end
    end
 
    if s.paused
@@ -788,7 +794,7 @@ function simstep(s::mjSim, robot)
    end
 end
 
-function PupperRobot(velocity = 0.4, yaw_rate = 0.5)
+function pupper(velocity = 0.4, yaw_rate = 0.5)
    config = Configuration()
    config.z_clearance = 0.01     # height to pick up each foot during trot
 
@@ -800,7 +806,7 @@ function PupperRobot(velocity = 0.4, yaw_rate = 0.5)
 end
 
 # Run the simulation
-function simulate(s = loadmodel(), robot = PupperRobot())
+function simulate(s::mjSim = loadmodel(), robot::Union{Robot, Nothing} = pupper())
    # Loop until the user closes the window
    while !GLFW.WindowShouldClose(s.window)
       simstep(s, robot)
@@ -811,6 +817,10 @@ function simulate(s = loadmodel(), robot = PupperRobot())
    GLFW.DestroyWindow(s.window)
 
    return
+end
+
+function simulate(modelpath::String, width = 0, height = 0, robot = nothing)
+   simulate(loadmodel(modelpath, width, height), robot)
 end
 
 end
