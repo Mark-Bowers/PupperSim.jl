@@ -359,6 +359,9 @@ function sensorshow(s::mjSim, rect::mjrRect)
    mjr_figure(viewport, s.figsensor, s.con)
 end
 
+# global
+lastcmndkey = nothing
+
 ##################################################### callbacks
 
 function mykeyboard(s::mjSim, window::GLFW.Window,
@@ -399,7 +402,7 @@ function mykeyboard(s::mjSim, window::GLFW.Window,
          end
       else  # <Ctrl> key not pressed
          #println("NVISFLAG: $(Int(mj.NVISFLAG)), mj.VISSTRING: $(mj.VISSTRING)\nNRNDFLAG: $(Int(mj.NRNDFLAG)), RNDSTRING: $(mj.RNDSTRING), NGROUP: $(mj.NGROUP)")
-
+         global lastcmndkey = key
          # toggle visualization flag
          # NVISFLAG: 22, VISSTRING: ["Convex Hull" "0" "H"; "Texture" "1" "X"; "Joint" "0" "J"; "Actuator" "0" "U"; "Camera" "0" "Q"; "Light" "0" "Z"; "Tendon" "0" "V"; "Range Finder" "0" "Y"; "Constraint" "0" "N"; "Inertia" "0" "I"; "SCL Inertia" "0" "S"; "Perturb Force" "0" "B"; "Perturb Object" "1" "O"; "Contact Point" "0" "C"; "Contact Force" "0" "F"; "Contact Split" "0" "P"; "Transparent" "0" "T"; "Auto Connect" "0" "A"; "Center of Mass" "0" "M"; "Select Point" "0" "E"; "Static Body" "0" "D"; "Skin" "0" ";"]
          for i=1:Int(mj.NVISFLAG)
@@ -708,8 +711,9 @@ function loadmodel(
    return s
 end
 
-const crouch_height = -0.08
+const crouch_height = -0.06
 const normal_height = -0.16
+const new_pitch = 0.0
 
 function step_script(s::mjSim, robot)
    elapsed_time = round(Int, s.d.d[].time * 1000)  # elapsed time in milliseconds (non-paused simulation)
@@ -722,16 +726,30 @@ function step_script(s::mjSim, robot)
          toggle_activate(robot)
       end
 
-      if elapsed_time % 2000 == 0 && robot.command.height > -0.1
+      # After he's done falling and getting up, we return to a normal height and pitch
+      if elapsed_time == 2000 && robot.command.height > -0.1
          robot.command.height = normal_height
-         robot.command.pitch = 0.0
+         robot.command.pitch = new_pitch
+         # We begin trotting here for a few seconds
          toggle_trot(robot)
-         end
-
-      if elapsed_time % 10000 == 0
-         robot.command.height = crouch_height
-         toggle_trot(robot)
+         println("Standing up and beginning march with velocity", robot.command.horizontal_velocity)
       end
+
+      global lastcmndkey
+      if lastcmndkey == GLFW.KEY_J
+         println("User wants to turn left")
+         turn_left(robot)
+      elseif lastcmndkey == GLFW.KEY_L
+         println("User wants to turn right")
+         turn_right(robot)
+      elseif lastcmndkey == GLFW.KEY_I
+         println("User wants to increase tilt")
+         increase_pitch(robot)
+      elseif lastcmndkey == GLFW.KEY_K
+         println("User wants to decrease tilt")
+         decrease_pitch(robot)
+      end
+      lastcmndkey = nothing
    end
 end
 
