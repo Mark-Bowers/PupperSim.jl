@@ -15,15 +15,14 @@ const fontscale = mj.FONTSCALE_200 # can be 100, 150, 200
 const maxgeom       = 5000    # preallocated geom array in mjvScene
 #const syncmisalign  = 0.1    # maximum time mis-alignment before re-sync
 #const refreshfactor = 0.7    # fraction of refresh available for simulation
+
 const max_video_duration = 30 # seconds
-const max_video_frames = 60 * max_video_duration
+const video_frames_per_second = 60
+const max_video_frames = video_frames_per_second * max_video_duration
 
 imgstack = []
-#nframes = 0
 
 # modified from https://github.com/klowrey/MujocoSim.jl/
-# - Named module to PupperSim
-# - Started on video recording changes
 
 mutable struct mjSim
    # visual interaction controls
@@ -685,13 +684,13 @@ end
 
 # Load the model (contains robot and its environment)
 # width and height control the visual resolution of the simulation
-# 4//3 aspect ratio:
-#s = loadmodel(modelpath, 1200, 900) # 3.09 MB/frame, raw video size: 2.7 GB
-#s = loadmodel(modelpath, 1024, 768) # 2.25 MB/frame, raw video size: 2.0 GB
-#s = loadmodel(modelpath,  800, 600) # 1.37 MB/frame, raw video size: 1.2 GB
-#s = loadmodel(modelpath,  512, 384) # 0.56 MB/frame, raw video size: 0.5 GB
-#s = loadmodel(modelpath,  400, 300) # 0.34 MB/frame, raw video size: 0.3 GB
-# 1920//1080 == 1920//1080 == 16//9 aspect ratio
+# At resolution (1920, 1080): 5.93 MB/frame, total raw video size: 10.4 GB
+# At resolution (1600,  900): 4.12 MB/frame, total raw video size:  7.2 GB
+# At resolution (1200,  900): 3.09 MB/frame, total raw video size:  5.4 GB
+# At resolution (1024,  768): 2.25 MB/frame, total raw video size:  4.0 GB
+# At resolution ( 800,  600): 1.37 MB/frame, total raw video size:  2.4 GB
+# At resolution ( 512,  384): 0.56 MB/frame, total raw video size:  1.0 GB
+# At resolution ( 400,  300): 0.34 MB/frame, total raw video size:  0.6 GB
 
 function loadmodel(
       modelfile = joinpath(dirname(pathof(@__MODULE__)), "../model/Pupper.xml"),
