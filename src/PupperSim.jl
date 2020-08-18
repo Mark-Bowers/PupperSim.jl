@@ -135,17 +135,6 @@ const keycmds = Dict{GLFW.Key, Function}(
       s.paused = !s.paused
       s.paused ? println("Paused") : println("Running")
    end,
-   #=
-   GLFW.KEY_V=>(s)->begin
-      if s.record == nothing
-         s.record = 1
-         println("Recording")
-      else
-         s.record = nothing
-         encodevideo(s, imgstack)
-      end
-   end,
-   =#
    GLFW.KEY_PAGE_UP=>(s)->begin    # previous keyreset
       s.keyreset = min(s.m.m[].nkey - 1, s.keyreset + 1)
    end,
@@ -387,17 +376,27 @@ function mykeyboard(s::mjSim, window::GLFW.Window,
          if key == GLFW.KEY_A
             alignscale(s)
             return
+         #elseif key == GLFW.KEY_L && lastfile[0]
+         #   loadmodel(window, s.)
+         #   return
          elseif key == GLFW.KEY_P
             println(s.d.qpos)
-            #elseif key == GLFW.KEY_L && lastfile[0]
-            #   loadmodel(window, s.)
             return
          elseif key == GLFW.KEY_Q
-            if s.record != nothing
+            if s.record !== nothing
                s.record = nothing
                encodevideo(s, imgstack)
             end
             GLFW.SetWindowShouldClose(window, true)
+         elseif key == GLFW.KEY_V
+            if s.record === nothing
+               s.record = 1
+               println("Recording")
+            else
+               s.record = nothing
+               encodevideo(s, imgstack)
+            end
+            return
          end
       else  # <Ctrl> key not pressed
          #println("NVISFLAG: $(Int(mj.NVISFLAG)), mj.VISSTRING: $(mj.VISSTRING)\nNRNDFLAG: $(Int(mj.NRNDFLAG)), RNDSTRING: $(mj.RNDSTRING), NGROUP: $(mj.NGROUP)")

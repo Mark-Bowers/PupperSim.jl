@@ -1,10 +1,11 @@
 # Key Commands:
+### Toggle Rendering Flags
 | Key | Command |
 | --- | ------- |
 , | Segment
-. | ~~Id Color~~
-/ | ~~Haze~~
-; | ~~Skin~~
+. | Id Color
+/ | Haze
+; | Skin
 A | Auto Connect
 B | Perturb Force (while sim is running)
 C | Contact Point
@@ -27,12 +28,13 @@ S | ~~SCL Inertia~~
 S | Shadow
 T | Transparent
 U | Actuator
-V | ~~Tendon~~ (now used for video)
+V | Tendon
 W | Wireframe
 X | Texture
 Y | ~~Range Finder~~
 Z | ~~Light~~
 
+### Toggle UI Options
 | Key | Command |
 | --- | ------- |
 F1 | ~~help~~
@@ -44,6 +46,7 @@ F6 | ~~stereo~~
 F7 | ~~sensor figure~~
 F8 | ~~profiler~~
 
+### Simulator Commands
 | Key | Command |
 | --- | ------- |
 Esc | ~~free camera~~
@@ -57,8 +60,10 @@ PgUp   | ~~previous keyreset~~
 PgDn | next keyreset~~
 BackSp | reset
 
+### Control Key Commands
 | Key | Command |
 | --- | ------- |
 Ctrl A | align scale
 Ctrl P | print quaternions
 Ctrl Q | quit simulator
+Ctrl V | toggles between recording and not recording video
