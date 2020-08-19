@@ -1,0 +1,68 @@
+<mujoco>
+	<compiler inertiafromgeom="true" coordinate="local" meshdir="mesh/" texturedir="texture/"/>
+
+    <default>
+        <joint damping='10' armature='0'/>
+        <geom contype='1' conaffinity='1' condim='1' 
+        	margin="0.001" solref=".02 1" solimp=".8 .8 .01" material="geom"/>
+    </default>
+
+	<size nconmax="500" njmax="5000"/>
+	<option timestep="0.001"/>
+
+    <statistic extent="5"/>
+
+	<asset>
+		<hfield name="fld" size="3 3 1.5 1"  file="hfield.hf"/>
+
+      	<texture name="texplane" type="2d" builtin="checker" rgb1=".8 .4 .4" rgb2=".3 .3 .3" 
+            width="256" height="256"/>  
+	
+        <material name='field' texture="texplane" texrepeat="1 1" texuniform="true"/>
+        <material name='geom' rgba="0.8 0.6 .4 1"/>
+
+        <mesh file="Body.stl"/>
+        <mesh file="CLS6336HV.stl"/>
+        <mesh file="Hub.stl"/>
+        <mesh file="ServoHorn.stl"/>
+        <mesh file="UpperLeg.stl"/>
+        <mesh file="LowerLeg.stl"/>
+        <texture type="2d" file="BrushedAluminum.png"/>
+        <texture type="2d" file="Oak.png"/>
+        <texture type="2d" file="CarbonFiber2D.png" name="CarbonFiber2D"/>
+        <texture type="cube" file="CarbonFiber.png" gridsize="3 4" gridlayout=".U..LFRB.D.."/>
+        <texture type="cube" file="CLS6336HV.png"/>
+        <texture type="cube" file="Marble.png"/>
+        <material name="BrushedAluminum" texture="BrushedAluminum" specular="0.9" shininess="0.9" reflectance="0.3"/>
+        <material name="CarbonFiber" texture="CarbonFiber" specular="0.9" shininess="0.9" reflectance="0.3"/>
+        <material name="CLS6336HV" texture="CLS6336HV" specular="0.9" shininess="0.9" reflectance="0.3"/>
+        <material name="CarbonFiber2D" texture="CarbonFiber2D" specular="0.9" shininess="0.9" reflectance="0.3"/>
+        <material name="Oak" texture="Oak" specular="0.9" shininess="0.9" reflectance="0.3" texrepeat="4 4"/>
+        <material name="ABS" rgba=".1 .1 .1 1"/>
+        <material name="Marble" texture="Marble" rgba=".7 .65 .65 0.9"/>
+	</asset>
+
+    <worldbody> 
+
+        <light directional="false" cutoff="65" exponent="10" diffuse=".7 .7 .7" pos="0.4 -0.2 3.5" dir="-0.4 0.2 -1.5" specular=".3 .3 .3"/>
+
+		<geom type="hfield" pos="0 0 -1" axisangle="1 0 0 0" hfield="fld" material="field" rgba="1 1 1 1"/>	
+
+		<geom type="plane" pos="0 0 -1.5" size="8 8 1" rgba=".8 .1 .1 1" condim="3"/>	
+
+      	<geom type="plane" pos="-8 0 0" zaxis="1 0 0" size="1.5 8 1" rgba=".8 .1 .1 1"/> 
+      	<geom type="plane" pos="8 0 0" zaxis="-1 0 0" size="1.5 8 1" rgba=".8 .1 .1 1"/> 
+      	<geom type="plane" pos="0 -8 0" zaxis="0 1 0" size="8 1.5 1" rgba=".8 .1 .1 1"/> 
+      	<geom type="plane" pos="0 8 0" zaxis="0 -1 0" size="8 1.5 1" rgba=".8 .1 .1 1"/> 
+
+        <body>
+            <joint type="free"/>
+            <geom type="sphere" material="BrushedAluminum" pos="0.5 0.5 0.6" size="0.15" name="ball1"/>
+        </body>
+        <body>
+            <joint type="free"/>
+            <geom type="sphere" material="Marble" density="1100" pos="0 1.3 0.6" size="0.15" name="ball2"/>
+            </body>
+	</worldbody>
+	
+</mujoco>
