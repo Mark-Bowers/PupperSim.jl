@@ -26,7 +26,7 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
 
   <default>
     <joint type="hinge" limited="true" armature="0.01936" solimplimit="0.9 0.95 0.01" solreflimit="0.01 1" stiffness="0" damping="1.049"/>
-    <geom conaffinity="0" condim="3" contype="1" friction=".1 .1 .1" solimp="0.9 0.95 0.01" solref="0.01 1"/>
+    <geom conaffinity="0" condim="3" contype="1" friction="1 0.005 0.0001" solimp="0.9 0.95 0.01" solref="0.01 1"/>
     <position forcelimited="true"/>
 </default>
 
@@ -82,7 +82,7 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
     </body>
     <body>
       <joint type="free" limited="false" damping=".3"/>
-      <geom type="sphere" material="Marble" pos="0.5 0 0.08" size="0.08" conaffinity="1" condim="3" name="ball2"/>
+      <geom type="sphere" material="Marble" pos="0.35 0 0.15" size="0.15" conaffinity="1" condim="3" name="ball2"/>
     </body>
     <geom type="box" material="Marble" pos="-0.3 0.3 0.1" size="0.4 0.05 0.15" conaffinity="1" condim="3" name="obstacle"/>
     <body name="torso" pos="0 0 0.27">

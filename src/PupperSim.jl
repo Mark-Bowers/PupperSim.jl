@@ -6,18 +6,16 @@ using GLFW
 using MuJoCo
 using StaticArrays
 using Colors
-using ImageCore
+using ImageCore   # N0f8
 using VideoIO
 using QuadrupedController
 
 ##################################################### globals
-const fontscale = mj.FONTSCALE_200 # can be 100, 150, 200
-const maxgeom       = 5000    # preallocated geom array in mjvScene
-#const syncmisalign  = 0.1    # maximum time mis-alignment before re-sync
-#const refreshfactor = 0.7    # fraction of refresh available for simulation
+const fontscale = mj.FONTSCALE_200  # can be 100, 150, 200
+const maxgeom = 5000                # preallocated geom array in mjvScene
 
-const max_video_duration = 30 # seconds
-const video_frames_per_second = 60
+const max_video_duration = 60       # max video duration in seconds
+const video_frames_per_second = 30  # determined by GLFW.GetPrimaryMonitor refresh rate
 const max_video_frames = video_frames_per_second * max_video_duration
 
 imgstack = []
@@ -37,16 +35,20 @@ mutable struct mjSim
 
    refreshrate::Int
 
+   # function keys
    showhelp::Int
    showoption::Bool
+   showinfo::Bool
    showdepth::Bool
    showfullscreen::Bool
+   # stereo::Bool
    showsensor::Bool
-   slowmotion::Bool
+   # profiler::Bool
 
-   showinfo::Bool
+   slowmotion::Bool
    paused::Bool
    keyreset::Int
+
    record::Any
    vidbuff::Vector{RGB{N0f8}}
 
@@ -79,7 +81,7 @@ mutable struct mjSim
 
       new(0.0, 0.0, false, false, false, GLFW.MOUSE_BUTTON_1, 0.0,
          vmode.refreshrate,
-         0, false, false, false, false, false, true, true, 0,
+         0, false, false, false, false, false, false, true, 0,
          nothing,
          Vector{RGB{N0f8}}(undef, vmode.width * vmode.height), # Probably not good to switch to a higher res monitor after initialization
          0.0, 0, 0,
@@ -390,6 +392,7 @@ function mykeyboard(s::mjSim, window::GLFW.Window,
                encodevideo(s, imgstack)
             end
             GLFW.SetWindowShouldClose(window, true)
+            return
          elseif key == GLFW.KEY_V
             if s.record === nothing
                s.record = 1
@@ -402,7 +405,11 @@ function mykeyboard(s::mjSim, window::GLFW.Window,
          end
       else  # <Ctrl> key not pressed
          #println("NVISFLAG: $(Int(mj.NVISFLAG)), mj.VISSTRING: $(mj.VISSTRING)\nNRNDFLAG: $(Int(mj.NRNDFLAG)), RNDSTRING: $(mj.RNDSTRING), NGROUP: $(mj.NGROUP)")
-         global lastcmndkey = key
+         if (key in [GLFW.KEY_I, GLFW.KEY_J, GLFW.KEY_K, GLFW.KEY_L])
+            global lastcmndkey = key
+            return
+         end
+
          # toggle visualization flag
          # NVISFLAG: 22, VISSTRING: ["Convex Hull" "0" "H"; "Texture" "1" "X"; "Joint" "0" "J"; "Actuator" "0" "U"; "Camera" "0" "Q"; "Light" "0" "Z"; "Tendon" "0" "V"; "Range Finder" "0" "Y"; "Constraint" "0" "N"; "Inertia" "0" "I"; "SCL Inertia" "0" "S"; "Perturb Force" "0" "B"; "Perturb Object" "1" "O"; "Contact Point" "0" "C"; "Contact Force" "0" "F"; "Contact Split" "0" "P"; "Transparent" "0" "T"; "Auto Connect" "0" "A"; "Center of Mass" "0" "M"; "Select Point" "0" "E"; "Static Body" "0" "D"; "Skin" "0" ";"]
          for i=1:Int(mj.NVISFLAG)
@@ -713,7 +720,6 @@ end
 
 const crouch_height = -0.06
 const normal_height = -0.16
-const new_pitch = 0.0
 
 function step_script(s::mjSim, robot)
    elapsed_time = round(Int, s.d.d[].time * 1000)  # elapsed time in milliseconds (non-paused simulation)
@@ -729,7 +735,7 @@ function step_script(s::mjSim, robot)
       # After he's done falling and getting up, we return to a normal height and pitch
       if elapsed_time == 2000 && robot.command.height > -0.1
          robot.command.height = normal_height
-         robot.command.pitch = new_pitch
+         robot.command.pitch = 0.0
          # We begin trotting here for a few seconds
          toggle_trot(robot)
          println("Standing up and beginning march with velocity", robot.command.horizontal_velocity)

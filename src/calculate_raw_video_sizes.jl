@@ -22,8 +22,8 @@ function calculate_raw_videos_sizes(max_frames)
 end
 
 # These constants copied from PupperSim.jl 
-const max_video_duration = 30 # seconds
-const video_frames_per_second = 60
+const max_video_duration = 60       # max video duration in seconds
+const video_frames_per_second = 30  # determined by GLFW.GetPrimaryMonitor refresh rate
 const max_video_frames = video_frames_per_second * max_video_duration
 
 calculate_raw_videos_sizes(max_video_frames)
