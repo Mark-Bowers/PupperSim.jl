@@ -20,7 +20,7 @@ K | Skybox
 L | Additive
 M | Center of Mass
 N | ~~Constraint~~
-O | ~~Perturb Object~~
+O | Perturb Object
 P | ~~Contact Split~~
 Q | Camera
 R | Reflection
@@ -47,9 +47,9 @@ F7 | ~~sensor figure~~
 F8 | ~~profiler~~
 
 ### Simulator Commands
-| Key | Command |
-| --- | ------- |
-Esc | ~~free camera~~
+| Key  | Command |
+| ---- | ------- |
+Esc    | ~~free camera~~
 Enter  | slow motion
 Space  | pause
 Right  | step forward
@@ -57,12 +57,12 @@ Left   | ~~step back~~
 Down   | step forward 100
 Up     | ~~step back 100~~
 PgUp   | ~~previous keyreset~~
-PgDn | next keyreset~~
+PgDn   | ~~next keyreset~~
 BackSp | reset
 
 ### Control Key Commands
-| Key | Command |
-| --- | ------- |
+| Key  | Command |
+| ---- | ------- |
 Ctrl A | align scale
 Ctrl P | print quaternions
 Ctrl Q | quit simulator
