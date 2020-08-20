@@ -18,8 +18,6 @@ const max_video_duration = 60       # max video duration in seconds
 const video_frames_per_second = 30  # determined by GLFW.GetPrimaryMonitor refresh rate
 const max_video_frames = video_frames_per_second * max_video_duration
 
-imgstack = []
-
 # modified from https://github.com/klowrey/MujocoSim.jl/
 
 mutable struct mjSim
@@ -32,6 +30,7 @@ mutable struct mjSim
 
    lastbutton::GLFW.MouseButton
    lastclicktm::Float64
+   lastcmdkey::Union{GLFW.Key, Nothing}
 
    refreshrate::Int
 
@@ -51,10 +50,11 @@ mutable struct mjSim
 
    record::Any
    vidbuff::Vector{RGB{N0f8}}
+   imgstack::Array{Array{RGB{N0f8},2},1}
 
    framecount::Float64
-   framenum::Int
-   lastframenum::Int
+   #framenum::Int
+   #lastframenum::Int
 
    # MuJoCo things
    scn::Ref{mjvScene}
@@ -76,15 +76,17 @@ mutable struct mjSim
 
    function mjSim(m::jlModel, d::jlData, name::String; width=0, height=0)
       vmode = GLFW.GetVideoMode(GLFW.GetPrimaryMonitor())
-      w = width > 0 ? width : Int(floor(2*vmode.width / 3))
-      h = height > 0 ? height : Int(floor(2*vmode.height / 3))
+      println("monitor resolution: $(vmode.width)x$(vmode.height)")
+      w = width > 0 ? width : Int(floor(vmode.width / 2))
+      h = height > 0 ? height : Int(floor(vmode.height / 2))
 
-      new(0.0, 0.0, false, false, false, GLFW.MOUSE_BUTTON_1, 0.0,
+      new(0.0, 0.0, false, false, false, GLFW.MOUSE_BUTTON_1, 0.0, nothing,
          vmode.refreshrate,
          0, false, false, false, false, false, false, true, 0,
          nothing,
          Vector{RGB{N0f8}}(undef, vmode.width * vmode.height), # Probably not good to switch to a higher res monitor after initialization
-         0.0, 0, 0,
+         [],
+         0.0, #0, 0,
          Ref(mjvScene()),
          Ref(mjvCamera()),
          Ref(mjvOption()),
@@ -248,7 +250,7 @@ const keycmds = Dict{GLFW.Key, Function}(
 )
 
 ##################################################### functions
-function encodevideo(s::mjSim, imgstack)
+function encodevideo(s::mjSim)
    # Primarily see avio.jl reference in render function below. Also of potential interest:
    # https://github.com/JuliaIO/VideoIO.jl/tree/master/examples
    # https://discourse.julialang.org/t/creating-a-video-from-a-stack-of-images/646/7
@@ -258,7 +260,7 @@ function encodevideo(s::mjSim, imgstack)
    props = [:priv_data => ("crf"=>"22","preset"=>"medium")]
    #println("sizeof(imgstack): ", sizeof(imgstack))
    println("Saving video to: $vfname")
-   @time encodedvideopath = VideoIO.encodevideo(vfname, imgstack, framerate=30, AVCodecContextProperties=props, silent=false)
+   @time encodedvideopath = VideoIO.encodevideo(vfname, s.imgstack, framerate=30, AVCodecContextProperties=props, silent=false)
    println("Done writing video!")
 end
 
@@ -361,9 +363,6 @@ function sensorshow(s::mjSim, rect::mjrRect)
    mjr_figure(viewport, s.figsensor, s.con)
 end
 
-# global
-lastcmndkey = nothing
-
 ##################################################### callbacks
 
 function mykeyboard(s::mjSim, window::GLFW.Window,
@@ -389,7 +388,7 @@ function mykeyboard(s::mjSim, window::GLFW.Window,
          elseif key == GLFW.KEY_Q
             if s.record !== nothing
                s.record = nothing
-               encodevideo(s, imgstack)
+               encodevideo(s)
             end
             GLFW.SetWindowShouldClose(window, true)
             return
@@ -399,14 +398,14 @@ function mykeyboard(s::mjSim, window::GLFW.Window,
                println("Recording")
             else
                s.record = nothing
-               encodevideo(s, imgstack)
+               encodevideo(s)
             end
             return
          end
       else  # <Ctrl> key not pressed
          #println("NVISFLAG: $(Int(mj.NVISFLAG)), mj.VISSTRING: $(mj.VISSTRING)\nNRNDFLAG: $(Int(mj.NRNDFLAG)), RNDSTRING: $(mj.RNDSTRING), NGROUP: $(mj.NGROUP)")
          if (key in [GLFW.KEY_I, GLFW.KEY_J, GLFW.KEY_K, GLFW.KEY_L])
-            global lastcmndkey = key
+            s.lastcmdkey = key
             return
          end
 
@@ -677,14 +676,14 @@ function render(s::PupperSim.mjSim, w::GLFW.Window)
            #println("Type of img: $(typeof(img)), size: $(size(img))")                      // Type of img:       Array{ColorTypes.RGB{FixedPointNumbers.Normed{UInt8,8}},2}, size: (900, 1200)
 
            if rect.height % 2 != 0
-              push!(imgstack, img[1:end-1,:])
+              push!(s.imgstack, img[1:end-1,:])
            else
-              push!(imgstack, img)
+              push!(s.imgstack, img)
            end
 
        else
            s.record = nothing
-           encodevideo(s, imgstack)
+           encodevideo(s)
        end
    end
 
@@ -741,21 +740,20 @@ function step_script(s::mjSim, robot)
          println("Standing up and beginning march with velocity", robot.command.horizontal_velocity)
       end
 
-      global lastcmndkey
-      if lastcmndkey == GLFW.KEY_J
+      if s.lastcmdkey == GLFW.KEY_J
          println("User wants to turn left")
          turn_left(robot)
-      elseif lastcmndkey == GLFW.KEY_L
+      elseif s.lastcmdkey == GLFW.KEY_L
          println("User wants to turn right")
          turn_right(robot)
-      elseif lastcmndkey == GLFW.KEY_I
+      elseif s.lastcmdkey == GLFW.KEY_I
          println("User wants to increase tilt")
          increase_pitch(robot)
-      elseif lastcmndkey == GLFW.KEY_K
+      elseif s.lastcmdkey == GLFW.KEY_K
          println("User wants to decrease tilt")
          decrease_pitch(robot)
       end
-      lastcmndkey = nothing
+      s.lastcmdkey = nothing
    end
 end
 
