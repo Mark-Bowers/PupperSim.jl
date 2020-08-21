@@ -15,6 +15,7 @@ VideoIO = "d6d074c3-1acf-5d4c-9a43-ef38773959a2"
 [compat]
 GLFW = "3.4"
 StaticArrays = "0.12"
+VideoIO = "0.8"
 julia = "1"
 
 [extras]
