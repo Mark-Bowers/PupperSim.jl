@@ -1,24 +1,37 @@
-﻿module PupperSim
+﻿module PupperSim    #  9.716722 seconds (11.72 M allocations: 650.717 MiB, 1.66% gc time)
+                    # 10.893923 seconds (13.63 M allocations: 756.021 MiB, 2.05% gc time)
+                    # 13.839607 seconds (16.71 M allocations: 918.154 MiB, 1.52% gc time)
+
+# modified from https://github.com/klowrey/MujocoSim.jl/
 
 export loadmodel, pupper, simulate
 
-using GLFW
-using MuJoCo
-using StaticArrays
-using Colors
-using ImageCore   # N0f8
-using VideoIO
-using QuadrupedController
+@time using GLFW                    # 0.418646 seconds (564.20 k allocations: 33.920 MiB)
+@time using MuJoCo                  # 0.705183 seconds (2.45 M allocations: 162.621 MiB)
+@time using StaticArrays            # 0.000598 seconds (482 allocations: 29.875 KiB)
+@time using FixedPointNumbers       # 0.058240 seconds (121.71 k allocations: 7.553 MiB)
+@time using ColorTypes              # 0.352808 seconds (366.70 k allocations: 22.285 MiB)
+
+const use_VideoIO = false           # Sys.iswindows()
+
+@static if use_VideoIO
+    @time using VideoIO             # 2.877718 seconds (6.32 M allocations: 345.427 MiB, 5.85% gc time)
+
+    const max_video_duration = 60   # max video duration in seconds
+    const video_fps = 30            # frames per second determined by GLFW.GetPrimaryMonitor refresh rate
+    const max_video_frames = video_fps * max_video_duration
+else
+    @time using FFMPEG              # 1.175542 seconds (3.00 M allocations: 160.817 MiB, 3.63% gc time)
+end
+
+@time using QuadrupedController     # 1.068143 seconds (3.38 M allocations: 171.183 MiB, 10.19% gc time)
 
 ##################################################### globals
 const fontscale = mj.FONTSCALE_200  # can be 100, 150, 200
 const maxgeom = 5000                # preallocated geom array in mjvScene
 
-const max_video_duration = 60       # max video duration in seconds
-const video_frames_per_second = 30  # determined by GLFW.GetPrimaryMonitor refresh rate
-const max_video_frames = video_frames_per_second * max_video_duration
-
-# modified from https://github.com/klowrey/MujocoSim.jl/
+const TPixel = RGB{N0f8}            # Pixel type
+const vfname = "puppersim.mp4"      # Video file name
 
 mutable struct mjSim
    # visual interaction controls
@@ -49,8 +62,8 @@ mutable struct mjSim
    keyreset::Int
 
    record::Any
-   vidbuff::Vector{RGB{N0f8}}
-   imgstack::Array{Array{RGB{N0f8},2},1}
+   vidbuf::Vector{UInt8}
+   imgstack::Array{Array{TPixel,2},1}
 
    framecount::Float64
    #framenum::Int
@@ -84,7 +97,7 @@ mutable struct mjSim
          vmode.refreshrate,
          0, false, false, false, false, false, false, true, 0,
          nothing,
-         Vector{RGB{N0f8}}(undef, vmode.width * vmode.height), # Probably not good to switch to a higher res monitor after initialization
+         Vector{UInt8}(undef, w*h*sizeof(TPixel)),
          [],
          0.0, #0, 0,
          Ref(mjvScene()),
@@ -96,7 +109,7 @@ mutable struct mjSim
          m, d,
          GLFW.CreateWindow(w, h, "Simulate"),
          vmode
-     )
+      )
    end
 end
 
@@ -250,18 +263,23 @@ const keycmds = Dict{GLFW.Key, Function}(
 )
 
 ##################################################### functions
-function encodevideo(s::mjSim)
-   # Primarily see avio.jl reference in render function below. Also of potential interest:
-   # https://github.com/JuliaIO/VideoIO.jl/tree/master/examples
-   # https://discourse.julialang.org/t/creating-a-video-from-a-stack-of-images/646/7
+function finish_recording(s::mjSim)
+    # Primarily see avio.jl reference in render function below. Also of potential interest:
+    # https://github.com/JuliaIO/VideoIO.jl/tree/master/examples
+    # https://discourse.julialang.org/t/creating-a-video-from-a-stack-of-images/646/7
 
-   s.record = nothing
-   vfname = "puppersim.mp4"
-   props = [:priv_data => ("crf"=>"22","preset"=>"medium")]
-   #println("sizeof(imgstack): ", sizeof(imgstack))
-   println("Saving video to: $vfname")
-   @time encodedvideopath = VideoIO.encodevideo(vfname, s.imgstack, framerate=30, AVCodecContextProperties=props, silent=false)
-   println("Done writing video!")
+    @static if use_VideoIO
+        println("Saving video to: $vfname")
+        props = [:priv_data => ("crf"=>"22","preset"=>"medium")]
+        @time encodedvideopath = VideoIO.encodevideo(vfname, s.imgstack, framerate=30, AVCodecContextProperties=props, silent=false)
+        s.imgstack = []
+    else
+        println("Closing $vfname")
+        close(s.record)
+    end
+
+    println("Done writing video!")
+    s.record = nothing
 end
 
 function alignscale(s::mjSim)
@@ -365,13 +383,13 @@ end
 
 ##################################################### callbacks
 
-function mykeyboard(s::mjSim, window::GLFW.Window,
+function keyboard(s::mjSim, window::GLFW.Window,
                     key::GLFW.Key, scancode::Int32, act::GLFW.Action, mods::Int32)
    # do not act on release
    if act == GLFW.RELEASE return end
 
    try
-      keycmds[key](s) # call anon function in Dict with s struct passed in
+      keycmds[key](s) # call anon function in keycmds Dict with s struct passed in
    catch
       # control keys
       #println("key: $key, scancode: $scancode, act: $act, mods: $mods")
@@ -386,24 +404,36 @@ function mykeyboard(s::mjSim, window::GLFW.Window,
             println(s.d.qpos)
             return
          elseif key == GLFW.KEY_Q
-            if s.record !== nothing
-               s.record = nothing
-               encodevideo(s)
-            end
+            s.record !== nothing && finish_recording(s)
             GLFW.SetWindowShouldClose(window, true)
             return
          elseif key == GLFW.KEY_V
             if s.record === nothing
-               s.record = 1
-               println("Recording")
+                println("Recording")
+                @static if use_VideoIO
+                    s.record = 0
+                else
+                    println("Saving video to $vfname")
+                    w, h = GLFW.GetFramebufferSize(window)
+
+                    # -y overwrite output files
+                    # -f force format
+                    @ffmpeg_env s.record = open(`ffmpeg -y
+                                    -f rawvideo -pixel_format rgb24
+                                    -video_size $(w)x$(h) -framerate $(s.refreshrate)
+                                    -i pipe:0
+                                    -preset fast -threads 0
+                                    -vf "vflip" $vfname`, "w")
+                end
             else
-               s.record = nothing
-               encodevideo(s)
+                finish_recording(s)
             end
             return
          end
       else  # <Ctrl> key not pressed
          #println("NVISFLAG: $(Int(mj.NVISFLAG)), mj.VISSTRING: $(mj.VISSTRING)\nNRNDFLAG: $(Int(mj.NRNDFLAG)), RNDSTRING: $(mj.RNDSTRING), NGROUP: $(mj.NGROUP)")
+
+         # check for robot command key (I, J, K, or L)
          if (key in [GLFW.KEY_I, GLFW.KEY_J, GLFW.KEY_K, GLFW.KEY_L])
             s.lastcmdkey = key
             return
@@ -419,6 +449,7 @@ function mykeyboard(s::mjSim, window::GLFW.Window,
                return
             end
          end
+
          # toggle rendering flag
          # NRNDFLAG: 9,  RNDSTRING: ["Shadow" "1" "S"; "Wireframe" "0" "W"; "Reflection" "1" "R"; "Additive" "0" "L"; "Skybox" "1" "K"; "Fog" "0" "G"; "Haze" "1" "/"; "Segment" "0" ","; "Id Color" "0" "."], NGROUP: 6
          for i=1:Int(mj.NRNDFLAG)
@@ -429,6 +460,7 @@ function mykeyboard(s::mjSim, window::GLFW.Window,
                return
             end
          end
+
          # toggle geom/site group
          for i=1:Int(mj.NGROUP)
             if Int(key) == i + Int('0')
@@ -601,6 +633,7 @@ function drop(window::GLFW.Window,
               count::Int, paths::String)
 end
 
+# Set up simulator and GLFW window environments
 function start(mm::jlModel, dd::jlData, width=1200, height=900) # TODO named args for callbacks
    GLFW.WindowHint(GLFW.SAMPLES, 4)
    GLFW.WindowHint(GLFW.VISIBLE, 1)
@@ -633,7 +666,7 @@ function start(mm::jlModel, dd::jlData, width=1200, height=900) # TODO named arg
    mjv_updateScene(s.m, s.d,
                    s.vopt, s.pert, s.cam, Int(mj.CAT_ALL), s.scn)
 
-   GLFW.SetKeyCallback(s.window, (w,k,sc,a,m)->mykeyboard(s,w,k,sc,a,m))
+   GLFW.SetKeyCallback(s.window, (w,k,sc,a,m)->keyboard(s,w,k,sc,a,m))
 
    GLFW.SetCursorPosCallback(s.window, (w,x,y)->mouse_move(s,w,x,y))
    GLFW.SetMouseButtonCallback(s.window, (w,b,a,m)->mouse_button(s,w,b,a,m))
@@ -643,52 +676,92 @@ function start(mm::jlModel, dd::jlData, width=1200, height=900) # TODO named arg
    return s
 end
 
+# Flip image pixels vertically
+@static if use_VideoIO
+function vflip(A)
+    nrows, ncols = size(A)
+    nrp1 = nrows + 1
+    for col = 1:ncols
+        for row = 1:div(nrows,  2)
+            t = A[nrp1-row, col]
+            A[nrp1-row, col] = A[row, col]
+            A[row, col] = t
+        end
+    end
+end
+end
 
 #### To customize what is rendered, change the following functions
 
 function render(s::PupperSim.mjSim, w::GLFW.Window)
-   wi, hi = GLFW.GetFramebufferSize(w)
-   rect = mjrRect(Cint(0), Cint(0), Cint(wi), Cint(hi))
-   smallrect = mjrRect(Cint(0), Cint(0), Cint(wi), Cint(hi))
+    # Update scene
+    mjv_updateScene(s.m, s.d, s.vopt, s.pert, s.cam, Int(mj.CAT_ALL), s.scn)
 
-   # update scene
-   mjv_updateScene(s.m, s.d, s.vopt, s.pert, s.cam, Int(mj.CAT_ALL), s.scn)
-   # render
-   mjr_render(rect, s.scn, s.con)
+    # Render
+    width, height = GLFW.GetFramebufferSize(w)
+    mjr_render(mjrRect(0,0,width,height), s.scn, s.con)
 
-   if s.record != nothing
-       #println("rect: $rect.width x $rect.height")
-       #mjr_readPixels(s.vidbuff, C_NULL, rect, s.con);
-       #write(s.record, s.vidbuff[1:3*rect.width*rect.height]);
-       if s.record <= max_video_frames
-           s.record += 1
+    if s.record !== nothing
+        @static if use_VideoIO
+        if s.record <= max_video_frames
+            #@time begin
+            s.record += 1
 
-           #println("Type of s.vidbuff: $(typeof(s.vidbuff)), size: $(size(s.vidbuff))")    // Type of s.vidbuff: Array{ColorTypes.RGB{FixedPointNumbers.Normed{UInt8,8}},1}, size: (14745600,)
-           mjr_readPixels(reinterpret(UInt8, s.vidbuff), C_NULL, rect, s.con);
+            # Image dims must be a multiple of two
+            width  = div(width,  2) * 2 # ensure that width is even
+            height = div(height, 2) * 2 # ensure that height is even
+            buflen = width * height * sizeof(TPixel)
 
-           # Reference: @testset "Encoding video across all supported colortypes" block in file avio.jl:
-           # (https://github.com/JuliaIO/VideoIO.jl/blob/master/test/avio.jl)
+            # If user has resized the window, we may need to allocate a new buffer
+            if length(s.vidbuf) != buflen
+                s.vidbuf = Vector{UInt8}(undef, buflen)
+            end
 
-           buf = s.vidbuff[1:rect.width*rect.height]
-           #println("Type of buf: $(typeof(buf)), size: $(size(buf))")                      // Type of buf:       Array{ColorTypes.RGB{FixedPointNumbers.Normed{UInt8,8}},1}, size: (1080000,)
+            # Get the pixels from MuJoCo
+            viewrect = mjrRect(0, 0, width, height)
+            mjr_readPixels(s.vidbuf, C_NULL, viewrect, s.con);
 
-           img = permuteddimsview(reshape(buf, rect.width, rect.height), (2,1))[end:-1:1,:]
-           #println("Type of img: $(typeof(img)), size: $(size(img))")                      // Type of img:       Array{ColorTypes.RGB{FixedPointNumbers.Normed{UInt8,8}},2}, size: (900, 1200)
+            # Reference: @testset "Encoding video across all supported colortypes" block in file avio.jl:
+            # (https://github.com/JuliaIO/VideoIO.jl/blob/master/test/avio.jl)
 
-           if rect.height % 2 != 0
-              push!(s.imgstack, img[1:end-1,:])
-           else
-              push!(s.imgstack, img)
-           end
+            # Reinterpret the video buffer as pixels
+            pixels = reinterpret(TPixel, s.vidbuf)
 
-       else
-           s.record = nothing
-           encodevideo(s)
-       end
-   end
+            # Shape the buffer into an image array
+            image = reshape(pixels, width, height)
 
-   # Swap front and back buffers
-   GLFW.SwapBuffers(w)
+            # Allocate an uninitialized frame on the image stack
+            push!(s.imgstack, Array{TPixel,2}(undef, height, width))
+
+            # Permute image array from column major to row major and write the
+            # result to the uninitialized memory at the top of the image stack
+            permutedims!(s.imgstack[end], image, (2,1))
+
+            # Flip the image in place on the image stack in the vertical direction
+            vflip(s.imgstack[end])
+            #end # @time begin
+        else    # s.record <= max_video_frames
+            finish_recording(s)
+        end     # s.record <= max_video_frames
+        else    # @static if use_VideoIO
+            #@time begin    # This method takes about 15 ms on average per video frame
+            buflen = width * height * sizeof(TPixel)
+
+            # If user has resized the window, we may need to allocate a new buffer
+            if length(s.vidbuf) != buflen
+                s.vidbuf = Vector{UInt8}(undef, buflen)
+            end
+
+            # Get the pixels from MuJoCo
+            viewrect = mjrRect(0, 0, width, height)
+            mjr_readPixels(s.vidbuf, C_NULL, viewrect, s.con);
+            write(s.record, s.vidbuf);
+            #end # @time begin
+        end     # @static if use_VideoIO
+    end # s.record !== nothing
+
+    # Swap front and back buffers
+    GLFW.SwapBuffers(w)
 end
 
 # Load the model (contains robot and its environment)

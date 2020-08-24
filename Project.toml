@@ -4,9 +4,10 @@ authors = ["Mark Bowers <mark_bowers@live.com> and contributors"]
 version = "0.1.0"
 
 [deps]
-Colors = "5ae59095-9a9b-59fe-a467-6f913c188581"
+ColorTypes = "3da002f7-5984-5a60-b8a6-cbb66c0b333f"
+FFMPEG = "c87230d0-a227-11e9-1b43-d7ebe4e7570a"
+FixedPointNumbers = "53c48c17-4a7d-5ca2-90c5-79b7896eea93"
 GLFW = "f7f18e0c-5ee9-5ccd-a5bf-e8befd85ed98"
-ImageCore = "a09fc81d-aa75-5fe9-8630-4744c3626534"
 MuJoCo = "7528ae0c-c4f8-11e8-159b-614449536536"
 QuadrupedController = "0a0771de-1099-46b6-8518-8474b76bc44f"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
