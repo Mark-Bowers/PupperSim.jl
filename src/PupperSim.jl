@@ -441,12 +441,14 @@ function keyboard(s::mjSim, window::GLFW.Window,
 
          # toggle visualization flag
          # NVISFLAG: 22, VISSTRING: ["Convex Hull" "0" "H"; "Texture" "1" "X"; "Joint" "0" "J"; "Actuator" "0" "U"; "Camera" "0" "Q"; "Light" "0" "Z"; "Tendon" "0" "V"; "Range Finder" "0" "Y"; "Constraint" "0" "N"; "Inertia" "0" "I"; "SCL Inertia" "0" "S"; "Perturb Force" "0" "B"; "Perturb Object" "1" "O"; "Contact Point" "0" "C"; "Contact Force" "0" "F"; "Contact Split" "0" "P"; "Transparent" "0" "T"; "Auto Connect" "0" "A"; "Center of Mass" "0" "M"; "Select Point" "0" "E"; "Static Body" "0" "D"; "Skin" "0" ";"]
-         for i=1:Int(mj.NVISFLAG)
-            if Int(key) == Int(mj.VISSTRING[i,3][1])
-               flags = MVector(s.vopt[].flags)
-               flags[i] = flags[i] == 0 ? 1 : 0
-               s.vopt[].flags = flags
-               return
+         if key != GLFW.KEY_S
+            for i=1:Int(mj.NVISFLAG)
+                if Int(key) == Int(mj.VISSTRING[i,3][1])
+                flags = MVector(s.vopt[].flags)
+                flags[i] = flags[i] == 0 ? 1 : 0
+                s.vopt[].flags = flags
+                return
+                end
             end
          end
 
@@ -784,6 +786,11 @@ function loadmodel(
    mj_forward(m, d)
    s = PupperSim.start(m, d, width, height)
    @info("Model file: $modelfile")
+
+   # Turn off shadows initially on Linux
+   flags = MVector(s.scn[].flags)
+   flags[1] = !Sys.islinux()
+   s.scn[].flags = flags
 
    GLFW.SetWindowRefreshCallback(s.window, (w)->render(s,w))
 
