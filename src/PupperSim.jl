@@ -391,7 +391,7 @@ function keyboard(s::mjSim, window::GLFW.Window,
                     key::GLFW.Key, scancode::Int32, act::GLFW.Action, mods::Int32)
 
     if act == GLFW.RELEASE
-        if scancode == 78 || scancode == 82 # numeric keypad 0 (Ins) / . (Del)
+        if scancode == 82 || scancode == 83 # numeric keypad 0 (Ins) / . (Del)
             end_turn(s.robot)
         end
         # do not act on release or repeat for most keys
