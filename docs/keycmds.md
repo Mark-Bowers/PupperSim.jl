@@ -60,6 +60,23 @@ PgUp   | ~~previous keyreset~~
 PgDn   | ~~next keyreset~~
 BackSp | reset
 
+### Robot Commands (Numeric Keypad)
+| Key  | Command |
+| ---- | ------- |
+PgUp  | increase velocity
+PgDn  | decrease velocity
+Home  | increase height
+End   | decrease height
+<     | yaw to left
+>     | yaw to right
+^     | pitch nose down
+down  | pitch nose up
+/     | roll left
+*     | roll right
+-     | toggle activatation
++     | toggle trot
+Enter | toggle hop
+
 ### Control Key Commands
 | Key  | Command |
 | ---- | ------- |
