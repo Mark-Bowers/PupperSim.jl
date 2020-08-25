@@ -69,8 +69,8 @@ Home  | increase height
 End   | decrease height
 <     | yaw to left
 >     | yaw to right
-^     | pitch nose down
-down  | pitch nose up
+^     | pitch nose up
+down  | pitch nose down
 /     | roll left
 *     | roll right
 -     | toggle activatation
