@@ -79,6 +79,9 @@ mutable struct mjSim
    m::jlModel
    d::jlData
 
+   # Robot controller
+   robot::Union{Robot, Nothing}
+
    # GLFW handle
    window::GLFW.Window
    vmode::GLFW.VidMode
@@ -107,13 +110,14 @@ mutable struct mjSim
          Ref(mjrContext()),
          Ref(mjvFigure()),
          m, d,
-         GLFW.CreateWindow(w, h, "Simulate"),
+         nothing,
+         GLFW.CreateWindow(w, h, name),
          vmode
       )
    end
 end
 
-export mjSim
+#export mjSim
 
 const keycmds = Dict{GLFW.Key, Function}(
    GLFW.KEY_F1=>(s)->begin  # help
@@ -385,14 +389,109 @@ end
 
 function keyboard(s::mjSim, window::GLFW.Window,
                     key::GLFW.Key, scancode::Int32, act::GLFW.Action, mods::Int32)
-   # do not act on release
-   if act == GLFW.RELEASE return end
+
+    if act == GLFW.RELEASE
+        if scancode == 78 || scancode == 82 # numeric keypad 0 (Ins) / . (Del)
+            end_turn(s.robot)
+        end
+        # do not act on release or repeat for most keys
+        return
+    end
+
+    valid_repeat = scancode in [73 81 71 79 75 77 72 80 309 55]  # height, pitch, and roll
+    if act == GLFW.REPEAT && !valid_repeat return end
+
+    #println("key: $key, scancode: $scancode, act: $act, mods: $mods")
+
+    """
+    Velocity
+    key: KEY_KP_9, scancode: 73, act: PRESS, mods: 0    # Up
+    key: KEY_KP_9, scancode: 73, act: RELEASE, mods: 0
+    key: KEY_KP_3, scancode: 81, act: PRESS, mods: 0    # Down
+    key: KEY_KP_3, scancode: 81, act: RELEASE, mods: 0
+
+    Height
+    key: KEY_KP_7, scancode: 71, act: PRESS, mods: 0    # Up
+    key: KEY_KP_7, scancode: 71, act: RELEASE, mods: 0
+    key: KEY_KP_1, scancode: 79, act: PRESS, mods: 0    # Down
+    key: KEY_KP_1, scancode: 79, act: RELEASE, mods: 0
+
+    Yaw
+    key: KEY_KP_4, scancode: 75, act: PRESS, mods: 0    # Left
+    key: KEY_KP_4, scancode: 75, act: RELEASE, mods: 0
+    key: KEY_KP_6, scancode: 77, act: PRESS, mods: 0    # Right
+    key: KEY_KP_6, scancode: 77, act: RELEASE, mods: 0
+
+    Pitch
+    key: KEY_KP_8, scancode: 72, act: PRESS, mods: 0    # Down
+    key: KEY_KP_8, scancode: 72, act: RELEASE, mods: 0
+    key: KEY_KP_2, scancode: 80, act: PRESS, mods: 0    # Up
+    key: KEY_KP_2, scancode: 80, act: RELEASE, mods: 0
+
+    Roll
+    scancode: 309   # Left
+    scancode: 55    # Right
+    """
+
+    # Velocity PgUp / PgDn
+    if scancode == 73   # numeric keypad 9 (PgUp)
+        s.robot.command.horizontal_velocity[1] += 0.01; return
+    elseif scancode == 81   # numeric keypad 3 (PgDn)
+        s.robot.command.horizontal_velocity[1] -= 0.01; return
+
+    # Height Home / End
+    elseif scancode == 71   # numeric keypad 7 (Home)
+        s.robot.command.height -= 0.005; return
+    elseif scancode == 79   # numeric keypad 1 (End)
+        s.robot.command.height += 0.005; return
+
+    # Yaw left / right arrow
+    elseif scancode == 75   # numeric keypad 4 (left arrow)
+        s.robot.command.yaw_rate += 0.02;
+        #println("yaw:      $(round(s.robot.command.yaw_rate, digits=2))")
+        return
+    elseif scancode == 77   # numeric keypad 6 (right arrow)
+        s.robot.command.yaw_rate -= 0.02;
+        #println("yaw:      $(round(s.robot.command.yaw_rate, digits=2))")
+        return
+
+    # Pitch up / down arrow
+    elseif scancode == 72   # numeric keypad 8 (up arrow)
+        s.robot.command.pitch += 0.03; return
+    elseif scancode == 80   # numeric keypad 2 (down arrow)
+        s.robot.command.pitch -= 0.03; return
+
+    # Roll left (/) / right (+)
+    elseif scancode == 309  # numeric keypad /
+        s.robot.command.roll += 0.02; return
+    elseif scancode == 55   # numeric keypad *
+        s.robot.command.roll -= 0.02; return
+
+    # Toggle activate (-) / trot (Enter) / hop ()
+    elseif scancode == 74   # numeric keypad -
+        toggle_activate(s.robot); return
+    elseif scancode == 78   # numeric keypad +
+        toggle_trot(s.robot); return
+    elseif scancode == 284  # numeric keypad Enter
+        toggle_hop(s.robot); return
+
+    # Turn left/right (0/.)
+    elseif scancode == 82   # numeric keypad 0
+        turn_left(s.robot); return
+    elseif scancode == 83   # numeric keypad .
+        turn_right(s.robot); return
+    end
+
+    """
+    Unused:
+    key: KEY_NUM_LOCK, scancode: 325
+    key: KEY_KP_DECIMAL, scancode: 83
+    """
 
    try
-      keycmds[key](s) # call anon function in keycmds Dict with s struct passed in
+      keycmds[key](s) # call anonymous function in keycmds Dict
    catch
       # control keys
-      #println("key: $key, scancode: $scancode, act: $act, mods: $mods")
       if mods & GLFW.MOD_CONTROL > 0
          if key == GLFW.KEY_A
             alignscale(s)
@@ -401,7 +500,14 @@ function keyboard(s::mjSim, window::GLFW.Window,
          #   loadmodel(window, s.)
          #   return
          elseif key == GLFW.KEY_P
-            println(s.d.qpos)
+            #println(s.d.qpos)
+            println("== Robot state ==")
+            println("velocity: $(round(s.robot.command.horizontal_velocity[1], digits=2))")
+            println("height:   $(s.robot.command.height)")
+            println("yaw:      $(round(s.robot.command.yaw_rate, digits=2))")
+            println("pitch:    $(s.robot.command.pitch)")
+            println("roll:     $(s.robot.command.roll)")
+            #println("=================")
             return
          elseif key == GLFW.KEY_Q
             s.record !== nothing && finish_recording(s)
@@ -433,11 +539,13 @@ function keyboard(s::mjSim, window::GLFW.Window,
       else  # <Ctrl> key not pressed
          #println("NVISFLAG: $(Int(mj.NVISFLAG)), mj.VISSTRING: $(mj.VISSTRING)\nNRNDFLAG: $(Int(mj.NRNDFLAG)), RNDSTRING: $(mj.RNDSTRING), NGROUP: $(mj.NGROUP)")
 
+         """
          # check for robot command key (I, J, K, or L)
          if (key in [GLFW.KEY_I, GLFW.KEY_J, GLFW.KEY_K, GLFW.KEY_L])
             s.lastcmdkey = key
             return
          end
+        """
 
          # toggle visualization flag
          # NVISFLAG: 22, VISSTRING: ["Convex Hull" "0" "H"; "Texture" "1" "X"; "Joint" "0" "J"; "Actuator" "0" "U"; "Camera" "0" "Q"; "Light" "0" "Z"; "Tendon" "0" "V"; "Range Finder" "0" "Y"; "Constraint" "0" "N"; "Inertia" "0" "I"; "SCL Inertia" "0" "S"; "Perturb Force" "0" "B"; "Perturb Object" "1" "O"; "Contact Point" "0" "C"; "Contact Force" "0" "F"; "Contact Split" "0" "P"; "Transparent" "0" "T"; "Auto Connect" "0" "A"; "Center of Mass" "0" "M"; "Select Point" "0" "E"; "Static Body" "0" "D"; "Skin" "0" ";"]
@@ -668,6 +776,7 @@ function start(mm::jlModel, dd::jlData, width=1200, height=900) # TODO named arg
    mjv_updateScene(s.m, s.d,
                    s.vopt, s.pert, s.cam, Int(mj.CAT_ALL), s.scn)
 
+   # Set up GLFW callbacks
    GLFW.SetKeyCallback(s.window, (w,k,sc,a,m)->keyboard(s,w,k,sc,a,m))
 
    GLFW.SetCursorPosCallback(s.window, (w,x,y)->mouse_move(s,w,x,y))
@@ -776,6 +885,11 @@ end
 # At resolution ( 512,  384): 0.56 MB/frame, total raw video size:  1.0 GB
 # At resolution ( 400,  300): 0.34 MB/frame, total raw video size:  0.6 GB
 
+"""
+    loadmodel(modelfile = "model/Pupper.xml", width = 1920, height = 1080)
+
+Loads MuJoCo XML model and starts the simulation
+"""
 function loadmodel(
       modelfile = joinpath(dirname(pathof(@__MODULE__)), "../model/Pupper.xml"),
       width = 1920, height = 1080
@@ -820,6 +934,7 @@ function step_script(s::mjSim, robot)
          println("Standing up and beginning march with velocity", robot.command.horizontal_velocity)
       end
 
+      """
       if s.lastcmdkey == GLFW.KEY_J
          println("User wants to turn left")
          turn_left(robot)
@@ -834,24 +949,25 @@ function step_script(s::mjSim, robot)
          decrease_pitch(robot)
       end
       s.lastcmdkey = nothing
+      """
    end
 end
 
 # Simulate physics for 1/240 seconds (the default timestep)
-function simstep(s::mjSim, robot)
+function simstep(s::mjSim)
    # Create local simulator d (data), and m (model) variables
    d = s.d
    m = s.m
 
-   if robot !== nothing
+   if s.robot !== nothing
       # Execute next step in command script
-      step_script(s::mjSim, robot)
+      step_script(s::mjSim, s.robot)
 
       # Step the controller forward by dt
-      run!(robot)
+      run!(s.robot)
 
       # Apply updated joint angles to sim
-      d.ctrl .= unsafe_wrap(Array{Float64,1}, pointer(robot.state.joint_angles), 12)
+      d.ctrl .= unsafe_wrap(Array{Float64,1}, pointer(s.robot.state.joint_angles), 12)
 
       # If Pupper controller, subtract the l1 joint angles from the l2 joint angles
       # to fake the kinematics of the parallel linkage
@@ -894,7 +1010,12 @@ function simstep(s::mjSim, robot)
    end
 end
 
-function pupper(velocity = 0.4, yaw_rate = 0.5)
+"""
+    pupper(velocity = 0.4, yaw_rate = 0.0)
+
+Creates a Robot controller with specified initial velocity and yaw_rate
+"""
+function pupper(velocity = 0.4, yaw_rate = 0.0)
    config = Configuration()
    config.z_clearance = 0.01     # height to pick up each foot during trot
 
@@ -906,10 +1027,17 @@ function pupper(velocity = 0.4, yaw_rate = 0.5)
 end
 
 # Run the simulation
+"""
+    simulate([s::mjSim[, robot::Robot]])
+
+Run the simulation loop
+"""
 function simulate(s::mjSim = loadmodel(), robot::Union{Robot, Nothing} = pupper())
+    s.robot = robot
+
    # Loop until the user closes the window
    while !GLFW.WindowShouldClose(s.window)
-      simstep(s, robot)
+      simstep(s)
       render(s, s.window)
       GLFW.PollEvents()
    end
@@ -919,6 +1047,11 @@ function simulate(s::mjSim = loadmodel(), robot::Union{Robot, Nothing} = pupper(
    return
 end
 
+"""
+    simulate(modelpath::String, width = 0, height = 0, robot = nothing)
+
+Run the simulation loop
+"""
 function simulate(modelpath::String, width = 0, height = 0, robot = nothing)
    simulate(loadmodel(modelpath, width, height), robot)
 end
