@@ -12,7 +12,7 @@ export loadmodel, pupper, simulate
 @time using FixedPointNumbers       # 0.058240 seconds (121.71 k allocations: 7.553 MiB)
 @time using ColorTypes              # 0.352808 seconds (366.70 k allocations: 22.285 MiB)
 
-const use_VideoIO = false           # Sys.iswindows()
+const use_VideoIO = true            # Sys.iswindows()
 
 @static if use_VideoIO
     @time using VideoIO             # 2.877718 seconds (6.32 M allocations: 345.427 MiB, 5.85% gc time)
@@ -227,27 +227,27 @@ const keycmds = Dict{GLFW.Key, Function}(
       end
    end,
    GLFW.KEY_LEFT_BRACKET=>(s)->begin  # '[' previous fixed camera or free
-      fixedcam = s.cam._type
-      if s.m.m[].ncam > 0 && fixedcam == Int(mj.CAMERA_FIXED)
-         fixedcamid = s.cam.fixedcamid
+      fixedcamtype = s.cam[]._type
+      if s.m.m[].ncam > 0 && fixedcamtype == Int(mj.CAMERA_FIXED)
+         fixedcamid = s.cam[].fixedcamid
          if (fixedcamid  > 0)
             s.cam[].fixedcamid = fixedcamid-1
-         else
+         elseif fixedcamid == 0
             s.cam[]._type = Int(mj.CAMERA_FREE)
+            s.cam[].fixedcamid = fixedcamid-1
          end
       end
    end,
    GLFW.KEY_RIGHT_BRACKET=>(s)->begin  # ']' next fixed camera
       if s.m.m[].ncam > 0
-         fixedcam = s.cam.type
-            fixedcamid = s.cam.fixedcamid
-            if fixedcam != Int(mj.CAMERA_FIXED)
-               s.cam[]._type = Int(mj.CAMERA_FIXED)
-            elseif fixedcamid < s.m.m[].ncam - 1
-               s.cam[].fixedcamid = fixedcamid+1
+         fixedcamtype = s.cam[]._type
+         fixedcamid = s.cam[].fixedcamid
+            if fixedcamid < s.m.m[].ncam - 1
+                s.cam[].fixedcamid = fixedcamid+1
+                s.cam[]._type = Int(mj.CAMERA_FIXED)
             end
-         end
-      end,
+      end
+   end,
    GLFW.KEY_SEMICOLON=>(s)->begin  # cycle over frame rendering modes
       frame = s.vopt.frame
       s.vopt[].frame = max(0, frame - 1)
@@ -398,40 +398,10 @@ function keyboard(s::mjSim, window::GLFW.Window,
         return
     end
 
-    valid_repeat = scancode in [73 81 71 79 75 77 72 80 309 55]  # height, pitch, and roll
+    valid_repeat = scancode in [73 81 71 79 75 77 72 80 309 55]  # velocity, height, yaw, pitch, and roll
     if act == GLFW.REPEAT && !valid_repeat return end
 
     #println("key: $key, scancode: $scancode, act: $act, mods: $mods")
-
-    """
-    Velocity
-    key: KEY_KP_9, scancode: 73, act: PRESS, mods: 0    # Up
-    key: KEY_KP_9, scancode: 73, act: RELEASE, mods: 0
-    key: KEY_KP_3, scancode: 81, act: PRESS, mods: 0    # Down
-    key: KEY_KP_3, scancode: 81, act: RELEASE, mods: 0
-
-    Height
-    key: KEY_KP_7, scancode: 71, act: PRESS, mods: 0    # Up
-    key: KEY_KP_7, scancode: 71, act: RELEASE, mods: 0
-    key: KEY_KP_1, scancode: 79, act: PRESS, mods: 0    # Down
-    key: KEY_KP_1, scancode: 79, act: RELEASE, mods: 0
-
-    Yaw
-    key: KEY_KP_4, scancode: 75, act: PRESS, mods: 0    # Left
-    key: KEY_KP_4, scancode: 75, act: RELEASE, mods: 0
-    key: KEY_KP_6, scancode: 77, act: PRESS, mods: 0    # Right
-    key: KEY_KP_6, scancode: 77, act: RELEASE, mods: 0
-
-    Pitch
-    key: KEY_KP_8, scancode: 72, act: PRESS, mods: 0    # Down
-    key: KEY_KP_8, scancode: 72, act: RELEASE, mods: 0
-    key: KEY_KP_2, scancode: 80, act: PRESS, mods: 0    # Up
-    key: KEY_KP_2, scancode: 80, act: RELEASE, mods: 0
-
-    Roll
-    scancode: 309   # Left
-    scancode: 55    # Right
-    """
 
     # Velocity PgUp / PgDn
     if scancode == 73   # numeric keypad 9 (PgUp)
@@ -503,10 +473,10 @@ function keyboard(s::mjSim, window::GLFW.Window,
             #println(s.d.qpos)
             println("== Robot state ==")
             println("velocity: $(round(s.robot.command.horizontal_velocity[1], digits=2))")
-            println("height:   $(s.robot.command.height)")
+            println("height:   $(round(s.robot.command.height, digits=2))")
             println("yaw:      $(round(s.robot.command.yaw_rate, digits=2))")
-            println("pitch:    $(s.robot.command.pitch)")
-            println("roll:     $(s.robot.command.roll)")
+            println("pitch:    $(round(s.robot.command.pitch, digits=2))")
+            println("roll:     $(round(s.robot.command.roll, digits=2))")
             #println("=================")
             return
          elseif key == GLFW.KEY_Q

@@ -56,6 +56,8 @@ Right  | step forward
 Left   | ~~step back~~
 Down   | step forward 100
 Up     | ~~step back 100~~
+[      | previous fixed camera or free
+]      |next fixed camera
 PgUp   | ~~previous keyreset~~
 PgDn   | ~~next keyreset~~
 BackSp | reset
