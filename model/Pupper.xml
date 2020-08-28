@@ -19,14 +19,14 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
 -->
 <mujoco model="Pupper">
 <compiler angle="radian" meshdir="mesh/" texturedir="texture/"/>
-  
+
   <visual>
     <quality shadowsize="16384"/>
   </visual>
 
   <default>
     <joint type="hinge" limited="true" armature="0.01936" solimplimit="0.9 0.95 0.01" solreflimit="0.01 1" stiffness="0" damping="1.049"/>
-    <geom conaffinity="0" condim="3" contype="1" friction="1 0.005 0.0001" solimp="0.9 0.95 0.01" solref="0.01 1"/>
+    <geom conaffinity="0" condim="3" contype="1" friction=".25 0.005 0.0001" solimp="0.9 0.95 0.01" solref="0.01 1"/>
     <position forcelimited="true"/>
 </default>
 
@@ -115,7 +115,7 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
           </body>
         </body>
         <!--<site name="imu_site" size=".01 .01 .01" type="box"/>-->
-     
+
         <body name="fr_module" pos="0.1 -0.04 0">
             <!--<geom pos="0 -0.0132 0" name="fr_block" type="box" size="0.0197 0.0372 0.0107" rgba="0.4 0.8 .4 .5"/>-->
             <body pos="-0.02 -0.042 0.022" quat="0.7071068 0 0.7071068 0">

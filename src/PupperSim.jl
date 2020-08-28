@@ -387,6 +387,8 @@ end
 
 ##################################################### callbacks
 
+global capsflag = 0
+
 function keyboard(s::mjSim, window::GLFW.Window,
                     key::GLFW.Key, scancode::Int32, act::GLFW.Action, mods::Int32)
 
@@ -398,65 +400,115 @@ function keyboard(s::mjSim, window::GLFW.Window,
         return
     end
 
-    valid_repeat = scancode in [73 81 71 79 75 77 72 80 309 55]  # velocity, height, yaw, pitch, and roll
-    if act == GLFW.REPEAT && !valid_repeat return end
-
-    #println("key: $key, scancode: $scancode, act: $act, mods: $mods")
-
-    # Velocity PgUp / PgDn
-    if scancode == 73   # numeric keypad 9 (PgUp)
-        s.robot.command.horizontal_velocity[1] += 0.01; return
-    elseif scancode == 81   # numeric keypad 3 (PgDn)
-        s.robot.command.horizontal_velocity[1] -= 0.01; return
-
-    # Height Home / End
-    elseif scancode == 71   # numeric keypad 7 (Home)
-        s.robot.command.height -= 0.005; return
-    elseif scancode == 79   # numeric keypad 1 (End)
-        s.robot.command.height += 0.005; return
-
-    # Yaw left / right arrow
-    elseif scancode == 75   # numeric keypad 4 (left arrow)
-        s.robot.command.yaw_rate += 0.02;
-        #println("yaw:      $(round(s.robot.command.yaw_rate, digits=2))")
-        return
-    elseif scancode == 77   # numeric keypad 6 (right arrow)
-        s.robot.command.yaw_rate -= 0.02;
-        #println("yaw:      $(round(s.robot.command.yaw_rate, digits=2))")
-        return
-
-    # Pitch up / down arrow
-    elseif scancode == 72   # numeric keypad 8 (up arrow)
-        s.robot.command.pitch += 0.03; return
-    elseif scancode == 80   # numeric keypad 2 (down arrow)
-        s.robot.command.pitch -= 0.03; return
-
-    # Roll left (/) / right (+)
-    elseif scancode == 309  # numeric keypad /
-        s.robot.command.roll += 0.02; return
-    elseif scancode == 55   # numeric keypad *
-        s.robot.command.roll -= 0.02; return
-
-    # Toggle activate (-) / trot (Enter) / hop ()
-    elseif scancode == 74   # numeric keypad -
-        toggle_activate(s.robot); return
-    elseif scancode == 78   # numeric keypad +
-        toggle_trot(s.robot); return
-    elseif scancode == 284  # numeric keypad Enter
-        toggle_hop(s.robot); return
-
-    # Turn left/right (0/.)
-    elseif scancode == 82   # numeric keypad 0
-        turn_left(s.robot); return
-    elseif scancode == 83   # numeric keypad .
-        turn_right(s.robot); return
+    if key == GLFW.KEY_CAPS_LOCK
+      global capsflag = (capsflag + 1) % 2
     end
 
-    """
-    Unused:
-    key: KEY_NUM_LOCK, scancode: 325
-    key: KEY_KP_DECIMAL, scancode: 83
-    """
+    if capsflag == 1
+      println("Caps lock is on. Using keyboard for control keys")
+       valid_repeat = key in [GLFW.KEY_LEFT, GLFW.KEY_RIGHT, GLFW.KEY_UP, GLFW.KEY_DOWN,
+                              GLFW.KEY_COMMA, GLFW.KEY_PERIOD, GLFW.KEY_PAGE_UP, GLFW.KEY_PAGE_DOWN,
+                              GLFW.KEY_END, GLFW.KEY_HOME]  # height, pitch, and roll
+       # valid_repeat = scancode in [73 81 71 79 75 77 72 80 309 55]  # height, pitch, and roll
+       if act == GLFW.REPEAT && !valid_repeat return end
+
+       println("key: $key, scancode: $scancode, act: $act, mods: $mods")
+
+       """
+       Velocity
+       key: KEY_KP_9, scancode: 73, act: PRESS, mods: 0    # Up
+       key: KEY_KP_9, scancode: 73, act: RELEASE, mods: 0
+       key: KEY_KP_3, scancode: 81, act: PRESS, mods: 0    # Down
+       key: KEY_KP_3, scancode: 81, act: RELEASE, mods: 0
+
+       Height
+       key: KEY_KP_7, scancode: 71, act: PRESS, mods: 0    # Up
+       key: KEY_KP_7, scancode: 71, act: RELEASE, mods: 0
+       key: KEY_KP_1, scancode: 79, act: PRESS, mods: 0    # Down
+       key: KEY_KP_1, scancode: 79, act: RELEASE, mods: 0
+
+       Yaw
+       key: KEY_KP_4, scancode: 75, act: PRESS, mods: 0    # Left
+       key: KEY_KP_4, scancode: 75, act: RELEASE, mods: 0
+       key: KEY_KP_6, scancode: 77, act: PRESS, mods: 0    # Right
+       key: KEY_KP_6, scancode: 77, act: RELEASE, mods: 0
+
+       Pitch
+       key: KEY_KP_8, scancode: 72, act: PRESS, mods: 0    # Down
+       key: KEY_KP_8, scancode: 72, act: RELEASE, mods: 0
+       key: KEY_KP_2, scancode: 80, act: PRESS, mods: 0    # Up
+       key: KEY_KP_2, scancode: 80, act: RELEASE, mods: 0
+
+       Roll
+       scancode: 309   # Left
+       scancode: 55    # Right
+       """
+
+       # Velocity PgUp / PgDn
+       # if scancode == 73   # numeric keypad 9 (PgUp)
+       if key == GLFW.KEY_PAGE_UP   # PgUp
+           s.robot.command.horizontal_velocity[1] += 0.01; return
+       elseif key == GLFW.KEY_PAGE_DOWN   # PgDn
+       # elseif scancode == 81   # numeric keypad 3 (PgDn)
+           s.robot.command.horizontal_velocity[1] -= 0.01; return
+
+       # Height Home / End
+       elseif key == GLFW.KEY_HOME  # Home
+       # elseif scancode == 71   # numeric keypad 7 (Home)
+           s.robot.command.height -= 0.005; return
+       elseif key == GLFW.KEY_END  # numeric keypad 7 (Home)
+       # elseif scancode == 79   # numeric keypad 1 (End)
+           s.robot.command.height += 0.005; return
+
+       # Yaw left / right arrow
+       elseif key == GLFW.KEY_LEFT  # left arrow
+       # elseif scancode == 75   # numeric keypad 4 (left arrow)
+           s.robot.command.yaw_rate += 0.02;
+           println("yaw:      $(round(s.robot.command.yaw_rate, digits=2))")
+           return
+       elseif key == GLFW.KEY_RIGHT  # right arrow
+       # elseif scancode == 77   # numeric keypad 6 (right arrow)
+           s.robot.command.yaw_rate -= 0.02;
+           println("yaw:      $(round(s.robot.command.yaw_rate, digits=2))")
+           return
+
+       # Pitch up / down arrow
+       elseif key == GLFW.KEY_UP  # up arrow
+       # elseif scancode == 72   # numeric keypad 8 (up arrow)
+           s.robot.command.pitch += 0.03; return
+       elseif key == GLFW.KEY_DOWN  # down arrow
+       # elseif scancode == 80   # numeric keypad 2 (down arrow)
+           s.robot.command.pitch -= 0.03; return
+
+       # Roll left (/) / right (+)
+       elseif key == GLFW.KEY_COMMA && mods == 1
+       # elseif scancode == 309  # numeric keypad /
+           s.robot.command.roll += 0.02; return
+       elseif key == GLFW.KEY_PERIOD && mods == 1
+       # elseif scancode == 55   # numeric keypad *
+           s.robot.command.roll -= 0.02; return
+
+       # Toggle activate (-) / trot (Enter) / hop ()
+       elseif scancode == 74   # numeric keypad -
+           toggle_activate(s.robot); return
+       elseif scancode == 78   # numeric keypad +
+           toggle_trot(s.robot); return
+       elseif scancode == 284  # numeric keypad Enter
+           toggle_hop(s.robot); return
+
+       # Turn left/right (0/.)
+       elseif scancode == 82   # numeric keypad 0
+           turn_left(s.robot); return
+       elseif scancode == 83   # numeric keypad .
+           turn_right(s.robot); return
+       end
+
+       """
+       Unused:
+       key: KEY_NUM_LOCK, scancode: 325
+       key: KEY_KP_DECIMAL, scancode: 83
+       """
+   end
 
    try
       keycmds[key](s) # call anonymous function in keycmds Dict
