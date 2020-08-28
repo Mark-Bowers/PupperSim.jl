@@ -14,6 +14,7 @@ StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 VideoIO = "d6d074c3-1acf-5d4c-9a43-ef38773959a2"
 
 [compat]
+FixedPointNumbers = "0.8"
 GLFW = "3.4"
 StaticArrays = "0.12"
 VideoIO = "0.8"
