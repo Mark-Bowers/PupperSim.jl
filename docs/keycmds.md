@@ -73,11 +73,13 @@ left arrow  | yaw to left
 right arrow | yaw to right
 up arrow    | pitch nose up
 down arrow  | pitch nose down
-<           | roll left
->           | roll right
--           | toggle activatation
-+           | toggle trot
-Enter       | toggle hop
+Ins         | roll left
+Del         | roll right
+<           | turn left
+>           | turn right
+!           | toggle activatation
+-           | toggle trot
++           | toggle hop
 
 ### Control Key Commands
 | Key  | Command |

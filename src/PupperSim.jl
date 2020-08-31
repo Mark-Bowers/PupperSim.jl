@@ -33,6 +33,10 @@ const maxgeom = 5000                # preallocated geom array in mjvScene
 const TPixel = RGB{N0f8}            # Pixel type
 const vfname = "puppersim.mp4"      # Video file name
 
+const GLFW_LOCK_KEY_MODS = 0x00033004
+const GLFW_MOD_CAPS_LOCK = 0x0010   # Caps Lock key is enabled
+const GLFW_MOD_NUM_LOCK  = 0x0020   # Num Lock key is enabled
+
 mutable struct mjSim
    # visual interaction controls
    lastx::Float64
@@ -387,128 +391,165 @@ end
 
 ##################################################### callbacks
 
-global capsflag = 0
+@enum RobotCmd::Cint begin
+    NO_COMMAND = -1
+
+    # Commands to increase/decrease the value of scalar parameters:
+    # velocity, yaw, height, pitch, and roll
+    INCREASE_VELOCITY   # Increase forward trot
+    DECREASE_VELOCITY   # Decrease forward trot (reverse)
+    INCREASE_YAW        # Veer right
+    DECREASE_YAW        # Veer left
+    INCREASE_HEIGHT     # Increase ride height
+    DECREASE_HEIGHT     # Decrease ride height
+    PITCH_NOSE_UP       # Nose up, tail down
+    PITCH_NOSE_DOWN     # Nose down, tail up
+    ROLL_LEFT           # Roll body to the left
+    ROLL_RIGHT          # Roll body to the right
+
+    # Commands to change the behavior state
+    TOGGLE_ACTIVATION   # DEACTIVATED->REST, REST->DEACTIVATED
+    TOGGLE_TROT         # REST->TROT, TROT->REST, HOP->TROT, FINISHHOP->TROT
+    CYCLE_HOP           # REST->HOP, HOP->FINISHHOP, FINISHHOP->REST, TROT->HOP
+
+    # Synthesized commands - not currently directly accessible via joystick
+    TURN_LEFT           # Turn left while trotting in place
+    TURN_RIGHT          # Turn right while trotting in place
+end
+
+# keypad helper function
+function keypadcmd(key::GLFW.Key, mods::Int32)::RobotCmd
+    # Keypad keys have a different meaning if ctrl, alt, or both are pressed
+    ctrl_or_alt = mods & (GLFW.MOD_CONTROL | GLFW.MOD_ALT) != 0
+    ctrl_or_alt && return NO_COMMAND # ctrl, alt, or both are pressed
+
+    # No other modifiers affect this set of keys
+    key == GLFW.KEY_KP_SUBTRACT && return TOGGLE_TROT
+    key == GLFW.KEY_KP_ADD      && return CYCLE_HOP
+
+    # Only caps lock does not affect this set of keys
+    unmodified = mods == 0 || mods == GLFW_MOD_CAPS_LOCK
+    unmodified || return NO_COMMAND
+
+    # The following comparisons assume that Num Lock is not toggled on
+    key == GLFW.KEY_KP_7 && return INCREASE_HEIGHT    # Increase ride height
+    key == GLFW.KEY_KP_8 && return PITCH_NOSE_UP      # Nose up, tail down
+    key == GLFW.KEY_KP_9 && return INCREASE_VELOCITY  # Increase trot forward
+    key == GLFW.KEY_KP_4 && return DECREASE_YAW       # Veer left
+    key == GLFW.KEY_KP_6 && return INCREASE_YAW       # Veer right
+    key == GLFW.KEY_KP_1 && return DECREASE_HEIGHT    # Decrease ride height
+    key == GLFW.KEY_KP_2 && return PITCH_NOSE_DOWN    # Nose down, tail up
+    key == GLFW.KEY_KP_3 && return DECREASE_VELOCITY  # Increase trot forward (reverse)
+    key == GLFW.KEY_KP_0 && return ROLL_LEFT          # Roll body to the left
+    key == GLFW.KEY_KP_DECIMAL && return ROLL_RIGHT   # Roll body to the right
+
+    return NO_COMMAND
+end
+
+function keyboardcmd(key::GLFW.Key, mods::Int32)::RobotCmd
+    # Ensure that key is in the shifted state (caps lock or shift key)
+    keys_shifted = mods & GLFW.MOD_SHIFT > 0
+    keys_shifted || return NO_COMMAND
+
+    # Velocity PgUp / PgDn
+    if key == GLFW.KEY_PAGE_UP return INCREASE_VELOCITY
+    elseif key == GLFW.KEY_PAGE_DOWN return DECREASE_VELOCITY
+
+    # Height Home / End
+    elseif key == GLFW.KEY_HOME return INCREASE_HEIGHT
+    elseif key == GLFW.KEY_END return DECREASE_HEIGHT
+
+    # Yaw left / right arrow
+    elseif key == GLFW.KEY_LEFT return INCREASE_YAW
+    elseif key == GLFW.KEY_RIGHT return DECREASE_YAW
+
+    # Pitch up / down arrow
+    elseif key == GLFW.KEY_UP return PITCH_NOSE_UP
+    elseif key == GLFW.KEY_DOWN return PITCH_NOSE_DOWN
+
+    # Roll left/right (Ins/Del)
+    elseif key == GLFW.KEY_INSERT return ROLL_LEFT
+    elseif key == GLFW.KEY_DELETE return ROLL_RIGHT
+
+    # Toggle activate (`) / trot (-) / hop (+)
+    elseif key == GLFW.KEY_1 return TOGGLE_ACTIVATION
+    elseif key == GLFW.KEY_MINUS return TOGGLE_TROT
+    elseif key == GLFW.KEY_EQUAL return CYCLE_HOP  # (+)
+
+    # Turn left (<) / right (>)
+    elseif key == GLFW.KEY_COMMA return TURN_LEFT   # Turn left while trotting in place
+    elseif key == GLFW.KEY_PERIOD return TURN_RIGHT # Turn right while trotting in place
+
+    end
+end
+
+in_range(key::Int, low::Int, high::Int) = key in low:high
+is_keypad_robotcmd(key::GLFW.Key) = in_range(Int(key), Int(GLFW.KEY_KP_0), Int(GLFW.KEY_KP_ENTER))
+is_keyboard_robotcmd(key::GLFW.Key) = in_range(Int(key), Int(GLFW.KEY_INSERT), Int(GLFW.KEY_END)) ||
+            key == GLFW.KEY_1 || key == GLFW.KEY_MINUS || key == GLFW.KEY_EQUAL ||
+            key == GLFW.KEY_COMMA || key == GLFW.KEY_PERIOD
 
 function keyboard(s::mjSim, window::GLFW.Window,
-                    key::GLFW.Key, scancode::Int32, act::GLFW.Action, mods::Int32)
+                key::GLFW.Key, scancode::Int32, act::GLFW.Action, mods::Int32)
+    #println("key: $key, scancode: $scancode, act: $act, mods: $mods")
+
+    robotcmd = NO_COMMAND
+
+    if is_keypad_robotcmd(key)                             # KeyPad keys
+        robotcmd = keypadcmd(key, mods)
+    elseif is_keyboard_robotcmd(key)
+        robotcmd = keyboardcmd(key, mods)
+    end
+
+    # Repeat keys valid for velocity, height, roll, pitch, and yaw commands
+    is_real_valued = in_range(Int(robotcmd), Int(INCREASE_VELOCITY), Int(ROLL_RIGHT))
+
+    #println("key: $key, act: $act, mods: $mods, robotcmd: $robotcmd")
 
     if act == GLFW.RELEASE
-        if scancode == 82 || scancode == 83 # numeric keypad 0 (Ins) / . (Del)
-            end_turn(s.robot)
+        is_turn_command = robotcmd == TURN_LEFT || robotcmd == TURN_RIGHT
+        is_turn_command && end_turn(s.robot)
+        return  # No other keys have an action associated with key release
+    elseif act == GLFW.REPEAT
+        is_real_valued || return
+        # Otherwise, fall through and execute the repeat command below
+    end
+
+    if robotcmd != NO_COMMAND
+        c = s.robot.command
+
+        # Velocity PgUp / PgDn
+        if robotcmd == INCREASE_VELOCITY        c.horizontal_velocity[1] += 0.01
+        elseif robotcmd == DECREASE_VELOCITY    c.horizontal_velocity[1] -= 0.01
+
+        # Height Home / End
+        elseif robotcmd == INCREASE_HEIGHT      c.height -= 0.005
+        elseif robotcmd == DECREASE_HEIGHT      c.height += 0.005
+
+        # Yaw left / right arrow
+        elseif robotcmd == INCREASE_YAW         c.yaw_rate += 0.02;
+        elseif robotcmd == DECREASE_YAW         c.yaw_rate -= 0.02;
+
+        # Pitch up / down arrow
+        elseif robotcmd == PITCH_NOSE_UP        c.pitch += 0.03
+        elseif robotcmd == PITCH_NOSE_DOWN      c.pitch -= 0.03
+
+        # Roll left (/) / right (+)
+        elseif robotcmd == ROLL_LEFT            c.roll += 0.02
+        elseif robotcmd == ROLL_RIGHT           c.roll -= 0.02
+
+        # Toggle activate (-) / trot (+) / hop (Enter)
+        elseif robotcmd == TOGGLE_ACTIVATION    toggle_activate(s.robot)
+        elseif robotcmd == TOGGLE_TROT          toggle_trot(s.robot)
+        elseif robotcmd == CYCLE_HOP            toggle_hop(s.robot)
+
+        # Turn left/right (0/.)
+        elseif robotcmd == TURN_LEFT            turn_left(s.robot)
+        elseif robotcmd == TURN_RIGHT           turn_right(s.robot)
         end
-        # do not act on release or repeat for most keys
-        return
+
+        return  # Finished executing robot command
     end
-
-    if key == GLFW.KEY_CAPS_LOCK
-      global capsflag = (capsflag + 1) % 2
-    end
-
-    if capsflag == 1
-      println("Caps lock is on. Using keyboard for control keys")
-       valid_repeat = key in [GLFW.KEY_LEFT, GLFW.KEY_RIGHT, GLFW.KEY_UP, GLFW.KEY_DOWN,
-                              GLFW.KEY_COMMA, GLFW.KEY_PERIOD, GLFW.KEY_PAGE_UP, GLFW.KEY_PAGE_DOWN,
-                              GLFW.KEY_END, GLFW.KEY_HOME]  # height, pitch, and roll
-       # valid_repeat = scancode in [73 81 71 79 75 77 72 80 309 55]  # height, pitch, and roll
-       if act == GLFW.REPEAT && !valid_repeat return end
-
-       println("key: $key, scancode: $scancode, act: $act, mods: $mods")
-
-       """
-       Velocity
-       key: KEY_KP_9, scancode: 73, act: PRESS, mods: 0    # Up
-       key: KEY_KP_9, scancode: 73, act: RELEASE, mods: 0
-       key: KEY_KP_3, scancode: 81, act: PRESS, mods: 0    # Down
-       key: KEY_KP_3, scancode: 81, act: RELEASE, mods: 0
-
-       Height
-       key: KEY_KP_7, scancode: 71, act: PRESS, mods: 0    # Up
-       key: KEY_KP_7, scancode: 71, act: RELEASE, mods: 0
-       key: KEY_KP_1, scancode: 79, act: PRESS, mods: 0    # Down
-       key: KEY_KP_1, scancode: 79, act: RELEASE, mods: 0
-
-       Yaw
-       key: KEY_KP_4, scancode: 75, act: PRESS, mods: 0    # Left
-       key: KEY_KP_4, scancode: 75, act: RELEASE, mods: 0
-       key: KEY_KP_6, scancode: 77, act: PRESS, mods: 0    # Right
-       key: KEY_KP_6, scancode: 77, act: RELEASE, mods: 0
-
-       Pitch
-       key: KEY_KP_8, scancode: 72, act: PRESS, mods: 0    # Down
-       key: KEY_KP_8, scancode: 72, act: RELEASE, mods: 0
-       key: KEY_KP_2, scancode: 80, act: PRESS, mods: 0    # Up
-       key: KEY_KP_2, scancode: 80, act: RELEASE, mods: 0
-
-       Roll
-       scancode: 309   # Left
-       scancode: 55    # Right
-       """
-
-       # Velocity PgUp / PgDn
-       # if scancode == 73   # numeric keypad 9 (PgUp)
-       if key == GLFW.KEY_PAGE_UP   # PgUp
-           s.robot.command.horizontal_velocity[1] += 0.01; return
-       elseif key == GLFW.KEY_PAGE_DOWN   # PgDn
-       # elseif scancode == 81   # numeric keypad 3 (PgDn)
-           s.robot.command.horizontal_velocity[1] -= 0.01; return
-
-       # Height Home / End
-       elseif key == GLFW.KEY_HOME  # Home
-       # elseif scancode == 71   # numeric keypad 7 (Home)
-           s.robot.command.height -= 0.005; return
-       elseif key == GLFW.KEY_END  # numeric keypad 7 (Home)
-       # elseif scancode == 79   # numeric keypad 1 (End)
-           s.robot.command.height += 0.005; return
-
-       # Yaw left / right arrow
-       elseif key == GLFW.KEY_LEFT  # left arrow
-       # elseif scancode == 75   # numeric keypad 4 (left arrow)
-           s.robot.command.yaw_rate += 0.02;
-           println("yaw:      $(round(s.robot.command.yaw_rate, digits=2))")
-           return
-       elseif key == GLFW.KEY_RIGHT  # right arrow
-       # elseif scancode == 77   # numeric keypad 6 (right arrow)
-           s.robot.command.yaw_rate -= 0.02;
-           println("yaw:      $(round(s.robot.command.yaw_rate, digits=2))")
-           return
-
-       # Pitch up / down arrow
-       elseif key == GLFW.KEY_UP  # up arrow
-       # elseif scancode == 72   # numeric keypad 8 (up arrow)
-           s.robot.command.pitch += 0.03; return
-       elseif key == GLFW.KEY_DOWN  # down arrow
-       # elseif scancode == 80   # numeric keypad 2 (down arrow)
-           s.robot.command.pitch -= 0.03; return
-
-       # Roll left (/) / right (+)
-       elseif key == GLFW.KEY_COMMA && mods == 1
-       # elseif scancode == 309  # numeric keypad /
-           s.robot.command.roll += 0.02; return
-       elseif key == GLFW.KEY_PERIOD && mods == 1
-       # elseif scancode == 55   # numeric keypad *
-           s.robot.command.roll -= 0.02; return
-
-       # Toggle activate (-) / trot (Enter) / hop ()
-       elseif scancode == 74   # numeric keypad -
-           toggle_activate(s.robot); return
-       elseif scancode == 78   # numeric keypad +
-           toggle_trot(s.robot); return
-       elseif scancode == 284  # numeric keypad Enter
-           toggle_hop(s.robot); return
-
-       # Turn left/right (0/.)
-       elseif scancode == 82   # numeric keypad 0
-           turn_left(s.robot); return
-       elseif scancode == 83   # numeric keypad .
-           turn_right(s.robot); return
-       end
-
-       """
-       Unused:
-       key: KEY_NUM_LOCK, scancode: 325
-       key: KEY_KP_DECIMAL, scancode: 83
-       """
-   end
 
    try
       keycmds[key](s) # call anonymous function in keycmds Dict
@@ -523,12 +564,13 @@ function keyboard(s::mjSim, window::GLFW.Window,
          #   return
          elseif key == GLFW.KEY_P
             #println(s.d.qpos)
+            c = s.robot.command
             println("== Robot state ==")
-            println("velocity: $(round(s.robot.command.horizontal_velocity[1], digits=2))")
-            println("height:   $(round(s.robot.command.height, digits=2))")
-            println("yaw:      $(round(s.robot.command.yaw_rate, digits=2))")
-            println("pitch:    $(round(s.robot.command.pitch, digits=2))")
-            println("roll:     $(round(s.robot.command.roll, digits=2))")
+            println("velocity: $(round(c.horizontal_velocity[1], digits=2))")
+            println("height:   $(round(c.height,    digits=2))")
+            println("yaw:      $(round(c.yaw_rate,  digits=2))")
+            println("pitch:    $(round(c.pitch,     digits=2))")
+            println("roll:     $(round(c.roll,      digits=2))")
             #println("=================")
             return
          elseif key == GLFW.KEY_Q
@@ -560,14 +602,6 @@ function keyboard(s::mjSim, window::GLFW.Window,
          end
       else  # <Ctrl> key not pressed
          #println("NVISFLAG: $(Int(mj.NVISFLAG)), mj.VISSTRING: $(mj.VISSTRING)\nNRNDFLAG: $(Int(mj.NRNDFLAG)), RNDSTRING: $(mj.RNDSTRING), NGROUP: $(mj.NGROUP)")
-
-         """
-         # check for robot command key (I, J, K, or L)
-         if (key in [GLFW.KEY_I, GLFW.KEY_J, GLFW.KEY_K, GLFW.KEY_L])
-            s.lastcmdkey = key
-            return
-         end
-        """
 
          # toggle visualization flag
          # NVISFLAG: 22, VISSTRING: ["Convex Hull" "0" "H"; "Texture" "1" "X"; "Joint" "0" "J"; "Actuator" "0" "U"; "Camera" "0" "Q"; "Light" "0" "Z"; "Tendon" "0" "V"; "Range Finder" "0" "Y"; "Constraint" "0" "N"; "Inertia" "0" "I"; "SCL Inertia" "0" "S"; "Perturb Force" "0" "B"; "Perturb Object" "1" "O"; "Contact Point" "0" "C"; "Contact Force" "0" "F"; "Contact Split" "0" "P"; "Transparent" "0" "T"; "Auto Connect" "0" "A"; "Center of Mass" "0" "M"; "Select Point" "0" "E"; "Static Body" "0" "D"; "Skin" "0" ";"]
@@ -799,6 +833,7 @@ function start(mm::jlModel, dd::jlData, width=1200, height=900) # TODO named arg
                    s.vopt, s.pert, s.cam, Int(mj.CAT_ALL), s.scn)
 
    # Set up GLFW callbacks
+   GLFW.SetInputMode(s.window, GLFW_LOCK_KEY_MODS, true)
    GLFW.SetKeyCallback(s.window, (w,k,sc,a,m)->keyboard(s,w,k,sc,a,m))
 
    GLFW.SetCursorPosCallback(s.window, (w,x,y)->mouse_move(s,w,x,y))
@@ -955,23 +990,6 @@ function step_script(s::mjSim, robot)
          toggle_trot(robot)
          println("Standing up and beginning march with velocity", robot.command.horizontal_velocity)
       end
-
-      """
-      if s.lastcmdkey == GLFW.KEY_J
-         println("User wants to turn left")
-         turn_left(robot)
-      elseif s.lastcmdkey == GLFW.KEY_L
-         println("User wants to turn right")
-         turn_right(robot)
-      elseif s.lastcmdkey == GLFW.KEY_I
-         println("User wants to increase tilt")
-         increase_pitch(robot)
-      elseif s.lastcmdkey == GLFW.KEY_K
-         println("User wants to decrease tilt")
-         decrease_pitch(robot)
-      end
-      s.lastcmdkey = nothing
-      """
    end
 end
 
