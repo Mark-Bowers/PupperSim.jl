@@ -19,9 +19,9 @@ Range for clamping the force output. The compiler expects the first value to be 
 
 # Experiments with forcerange and gear to get Hop to Work without Falling
 
-|         | Gear  | Friction | Forcerange | Notes                                                      | Observations                      |
-|---      |---    |---       |---         |---                                                         |---                                         |
-| Control | 1.0   |0.25      | -3.0 3.0   | These were the Parameters set when we inherited the model. | Pupper crouches to correct height when attempting jump, does not slide while walking, but falls backward after landing, then slides around on his back                       |
-| Trial 1 |      |           |            |                                                            |                                   |
-| Trial 2 |      |           |            |                                                            |                                   |
-| Trial 3 |      |           |            |                                                            |                                   | 
+|         | Gear  | Friction | Gainprm | Forcerange |  Notes                                           | Observations                      |
+|---      |---    |---       |---      |---         |---                                               |---                                |
+| Control | 1.0   | 0.25     | 1.0     |-3.0 3.0    | These were the Parameters set when we inherited the model. Gainprm not explicitly defined, but default is 1.                                                                             | Pupper crouches to correct height when attempting jump, does not slide while walking, but falls backward after landing, then slides around on his back                                                                                                                                       |
+| Trial 1 | 1.0   | 0.25     | 5.0     | -3.0 3.0   | Drastically increase gainprm because 1st value of this vector is said to scale with force. Gear only scales with the force _output_.                                                       |                                   |
+| Trial 2 |      |           |         |            |                                                  |                                   |
+| Trial 3 |      |           |         |            |                                                  |                                   |
