@@ -21,8 +21,7 @@ Range for clamping the force output. The compiler expects the first value to be 
 
 |         | Gear  | Friction | Forcerange | Notes                                                      | Observations                      |
 |---      |---    |---       |---         |---                                                         |---                                         |
-| Control | 1.0   |0.25      | -3.0 3.0   | These were the Parameters set when we inherited the model.  | Pupper crouches to correct height
-                                                                                                          when attempting jump, does not slide while walking, but falls backward after landing, then slides around on his back  |
-| Trial 1 |      |   |   |   |
-| Trial 2 |  |   |   |   |
-| Trial 3 |  |   |
+| Control | 1.0   |0.25      | -3.0 3.0   | These were the Parameters set when we inherited the model. | Pupper crouches to correct height when attempting jump, does not slide while walking, but falls backward after landing, then slides around on his back                       |
+| Trial 1 |      |           |            |                                                            |                                   |
+| Trial 2 |      |           |            |                                                            |                                   |
+| Trial 3 |      |           |            |                                                            |                                   | 
