@@ -80,10 +80,10 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
       <joint type="free" limited="false" damping=".3"/>
       <geom type="sphere" material="BrushedAluminum" pos="0.5 0.5 0.07" size="0.07" conaffinity="1" condim="3" name="ball1"/>
     </body>
-    <body>
+    <!-- <body>
       <joint type="free" limited="false" damping=".3"/>
       <geom type="sphere" material="Marble" pos="0.35 0 0.15" size="0.15" conaffinity="1" condim="3" name="ball2"/>
-    </body>
+    </body> -->
     <geom type="box" material="Marble" pos="-0.3 0.3 0.1" size="0.4 0.05 0.15" conaffinity="1" condim="3" name="obstacle"/>
     <body name="torso" pos="0 0 0.27">
         <camera name="track" mode="trackcom" pos="0 -2 0.3" xyaxes="1 0 0 0 0 1"/>
@@ -191,20 +191,20 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
 </worldbody>
 
 <actuator>
-    <position gear="1.8" joint="fr_x" name="fr_x" kp="300" forcerange="-7.5 7.5"/>
-    <position gear="1.8" joint="fr_y" name="fr_y" kp="300" forcerange="-7.5 7.5"/>
-    <position gear="1.8" joint="fr_y2" name="fr_y2" kp="300" forcerange="-7.5 7.5"/>
+    <position gear="1" joint="fr_x" name="fr_x"   kp="750" forcerange="-7.5 7.5"/>
+    <position gear="1" joint="fr_y" name="fr_y"   kp="750" forcerange="-7.5 7.5"/>
+    <position gear="1" joint="fr_y2" name="fr_y2" kp="900" forcerange="-9.0 9.0"/>
 
-    <position gear="1.8" joint="fl_x" name="fl_x" kp="300" forcerange="-7.5 7.5"/>
-    <position gear="1.8" joint="fl_y" name="fl_y" kp="300" forcerange="-7.5 7.5"/>
-    <position gear="1.8" joint="fl_y2" name="fl_y2" kp="300" forcerange="-7.5 7.5"/>
+    <position gear="1" joint="fl_x" name="fl_x"   kp="750" forcerange="-7.5 7.5"/>
+    <position gear="1" joint="fl_y" name="fl_y"   kp="750" forcerange="-7.5 7.5"/>
+    <position gear="1" joint="fl_y2" name="fl_y2" kp="900" forcerange="-9.0 9.0"/>
 
-    <position gear="1.8" joint="br_x" name="br_x" kp="300" forcerange="-9 9"/>
-    <position gear="1.8" joint="br_y" name="br_y" kp="300" forcerange="-9 9"/>
-    <position gear="1.8" joint="br_y2" name="br_y2" kp="300" forcerange="-9 9"/>
+    <position gear="1" joint="br_x" name="br_x"   kp="900" forcerange="-9.0 9.0"/>
+    <position gear="1" joint="br_y" name="br_y"   kp="900" forcerange="-9.0 9.0"/>
+    <position gear="1" joint="br_y2" name="br_y2" kp="1500" forcerange="-15.0 15.0"/>
 
-    <position gear="1.8" joint="bl_x" name="bl_x" kp="300" forcerange="-9 9"/>
-    <position gear="1.8" joint="bl_y" name="bl_y" kp="300" forcerange="-9 9"/>
-    <position gear="1.8" joint="bl_y2" name="bl_y2" kp="300" forcerange="-9 9"/>
+    <position gear="1" joint="bl_x" name="bl_x"   kp="900" forcerange="-9.0 9.0"/>
+    <position gear="1" joint="bl_y" name="bl_y"   kp="900" forcerange="-9.0 9.0"/>
+    <position gear="1" joint="bl_y2" name="bl_y2" kp="1500" forcerange="-15.0 15.0"/>
 </actuator>
 </mujoco>
