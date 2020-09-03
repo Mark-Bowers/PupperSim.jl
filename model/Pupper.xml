@@ -193,18 +193,18 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
 <actuator>
     <position gear="1" joint="fr_x" name="fr_x"   kp="750" forcerange="-7.5 7.5"/>
     <position gear="1" joint="fr_y" name="fr_y"   kp="750" forcerange="-7.5 7.5"/>
-    <position gear="1" joint="fr_y2" name="fr_y2" kp="900" forcerange="-9.0 9.0"/>
+    <position gear="1" joint="fr_y2" name="fr_y2" kp="900" forcerange="-12.0 12.0"/>
 
     <position gear="1" joint="fl_x" name="fl_x"   kp="750" forcerange="-7.5 7.5"/>
     <position gear="1" joint="fl_y" name="fl_y"   kp="750" forcerange="-7.5 7.5"/>
-    <position gear="1" joint="fl_y2" name="fl_y2" kp="900" forcerange="-9.0 9.0"/>
+    <position gear="1" joint="fl_y2" name="fl_y2" kp="1200" forcerange="-12.0 12.0"/>
 
     <position gear="1" joint="br_x" name="br_x"   kp="900" forcerange="-9.0 9.0"/>
-    <position gear="1" joint="br_y" name="br_y"   kp="900" forcerange="-9.0 9.0"/>
-    <position gear="1" joint="br_y2" name="br_y2" kp="1500" forcerange="-15.0 15.0"/>
+    <position gear="1" joint="br_y" name="br_y"   kp="900" forcerange="-6.0 6.0"/>
+    <position gear="1" joint="br_y2" name="br_y2" kp="1200" forcerange="-12.0 12.0"/>
 
     <position gear="1" joint="bl_x" name="bl_x"   kp="900" forcerange="-9.0 9.0"/>
-    <position gear="1" joint="bl_y" name="bl_y"   kp="900" forcerange="-9.0 9.0"/>
-    <position gear="1" joint="bl_y2" name="bl_y2" kp="1500" forcerange="-15.0 15.0"/>
+    <position gear="1" joint="bl_y" name="bl_y"   kp="900" forcerange="-6.0 6.0"/>
+    <position gear="1" joint="bl_y2" name="bl_y2" kp="1200" forcerange="-12.0 12.0"/>
 </actuator>
 </mujoco>
