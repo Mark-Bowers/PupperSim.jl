@@ -90,7 +90,7 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
         <freejoint/>
         <!--<geom name="torso" size="0.151924 0.05 0.03425" type="box" rgba=".8 .1 .1 .1"/>-->
         <body pos="0.0 0.0 -0.03425" quat="-0.7071068 0 0 0.7071068">
-          <camera name="puppercam" pos="0 0 0.13" quat="0.745 0.6666666 0 0"/>
+          <camera name="puppercam" pos="0 0.12 0.11" quat="0.745 0.6666666 0 0"/>
           <geom type="mesh" mesh="Body" pos="0 -0.133925 0.0015" material="ABS"/>
           <site type="box" pos="0 0 0.0666" size="0.03 0.15 0.002" material="CarbonFiber" rgba=".5 .5 .5 .1"/>
           <body pos="0.05 0.028 0.0542" quat="0 -0.7071068 0 0.7071068">
