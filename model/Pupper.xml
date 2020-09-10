@@ -80,36 +80,39 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
       <joint type="free" limited="false" damping=".3"/>
       <geom type="sphere" material="BrushedAluminum" pos="0.5 0.5 0.07" size="0.07" conaffinity="1" condim="3" name="ball1"/>
     </body>
-    <!-- <body>
+    <body>
       <joint type="free" limited="false" damping=".3"/>
       <geom type="sphere" material="Marble" pos="0.35 0 0.15" size="0.15" conaffinity="1" condim="3" name="ball2"/>
-    </body> -->
+    </body>
     <geom type="box" material="Marble" pos="-0.3 0.3 0.1" size="0.4 0.05 0.15" conaffinity="1" condim="3" name="obstacle"/>
     <body name="torso" pos="0 0 0.27">
         <camera name="track" mode="trackcom" pos="0 -2 0.3" xyaxes="1 0 0 0 0 1"/>
         <freejoint/>
         <!--<geom name="torso" size="0.151924 0.05 0.03425" type="box" rgba=".8 .1 .1 .1"/>-->
         <body pos="0.0 0.0 -0.03425" quat="-0.7071068 0 0 0.7071068">
-          <camera name="puppercam" pos="0 0 0.13" quat="0.745 0.6666666 0 0"/>
+          <!-- This corresponds to a 20.9 degree rotation about x-axis. How did we choose this theta? -->
+          <camera name="puppercam" pos="0 0 0.13" quat="0.7453559924999299 0.6666666 0 0"/>
           <geom type="mesh" mesh="Body" pos="0 -0.133925 0.0015" material="ABS"/>
-          <site type="box" pos="0 0 0.0666" size="0.03 0.15 0.002" material="CarbonFiber" rgba=".5 .5 .5 .1"/>
+          <site type="box" pos="0 0 0.0666" size="0.03 0.15 0.002" material="CarbonFiber" rgba="0 0 0 0"/>
+          <!--fr servo-->
+          <!-- quat= -1*sqrt(2)/2*i + sqrt(2)/2*k
+           Looks like a 90 degree rotation about the unit vector [-1, 0, +1] in Cartesian space-->
           <body pos="0.05 0.028 0.0542" quat="0 -0.7071068 0 0.7071068">
-            <!--fr servo-->
             <geom type="mesh" mesh="CLS6336HV" material="ABS"/>
             <site type="box" pos="0.0205 -0.02 0.01" size="0.018 0.019 0.0101" material="CLS6336HV"/>
           </body>
-          <body pos="-0.03 0.028 0.0542" quat="0 -0.7071068 0 0.7071068">
-            <!--fl servo-->
+          <!--fl servo-->
+          <body pos="-0.03 0.028 .0542" quat="0 -0.7071068 0 0.7071068">
             <geom type="mesh" mesh="CLS6336HV" material="ABS"/>
             <site type="box" pos="0.0205 -0.02 0.01" size="0.018 0.019 0.0101" material="CLS6336HV"/>
           </body>
+          <!--br servo-->
           <body pos="0.05 -0.1721 0.0542" quat="0 -0.7071068 0 0.7071068">
-            <!--br servo-->
             <geom type="mesh" mesh="CLS6336HV" material="ABS"/>
             <site type="box" pos="0.0205 -0.02 0.01" size="0.018 0.019 0.0101" material="CLS6336HV"/>
           </body>
+          <!--bl servo-->
           <body pos="-0.03 -0.1721 0.0542" quat="0 -0.7071068 0 0.7071068">
-            <!--bl servo-->
             <geom type="mesh" mesh="CLS6336HV" material="ABS"/>
             <site type="box" pos="0.0205 -0.02 0.01" size="0.018 0.019 0.0101" material="CLS6336HV"/>
           </body>
@@ -118,9 +121,15 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
 
         <body name="fr_module" pos="0.1 -0.04 0">
             <!--<geom pos="0 -0.0132 0" name="fr_block" type="box" size="0.0197 0.0372 0.0107" rgba="0.4 0.8 .4 .5"/>-->
+            <!-- This corresponds to a 90 degree rotation about the y-axis (i.e vector [0, 1, 0])
+                  Calculate this by: cos(45) + sin(45)(j). Recall doubling effect makes this a 90 degree rotation-->
             <body pos="-0.02 -0.042 0.022" quat="0.7071068 0 0.7071068 0">
               <geom type="mesh" mesh="Hub" material="ABS"/>
+              <!-- This corresponds to a -90 degree rotation about the y-axis (i.e. vector [0, 1, 0])
+              Calculate this by: cos(-45) + sin(-45)(j). Recall doubling effect makes this a -90 degree rotation -->
               <site type="box" pos="0.0129 -0.02 0.02955" quat="0.7071068 0 -0.7071068 0" size="0.018 0.019 0.0101" material="CLS6336HV"/>
+              <!-- This corresponds to a 270 (i.e. -90) degree rotation about the y-axis (i.e. vector [0, 1, 0])
+              Calculate this by cos(135) + sin(135)(j). Recall doubling effect to make this a -90 degree rotation -->
               <site type="box" pos="0.0129 0.044 0.02955" quat="0 -0.7071068 0 0.7071068" size="0.018 0.019 0.0101" material="CLS6336HV"/>
             </body>
             <joint name="fr_x" axis="1 0 0" range="-1.57 1.57"/>
