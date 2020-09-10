@@ -88,3 +88,4 @@ Ctrl A | align scale
 Ctrl P | print quaternions
 Ctrl Q | quit simulator
 Ctrl V | toggles between recording and not recording video
+Ctrl ] | toggles camera view widget

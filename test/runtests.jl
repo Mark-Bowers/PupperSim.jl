@@ -9,6 +9,14 @@ using Test
     @test names(PupperSim)[4] == :simulate
 end
 
+@testset "image_flip.jl" begin
+A = [1 2 3; 4 5 6; 7 8 9]
+PupperSim.hflip!(A)
+@test A == [3 2 1; 6 5 4; 9 8 7]
+PupperSim.vflip!(A)
+@test A == [9 8 7; 6 5 4; 3 2 1]
+end
+
 @testset "pupper" begin
     robot = pupper()
     @test string(robot.command) == "QuadrupedController.Command([0.4, 0.0], 0.0, -0.06, 0.1, 0.0, 0, false, false, false)"

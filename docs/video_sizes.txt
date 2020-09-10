@@ -1,0 +1,9 @@
+# Load the model (contains robot and its environment)
+# width and height control the visual resolution of the simulation
+# At resolution (1920, 1080): 5.93 MB/frame, total raw video size: 10.4 GB
+# At resolution (1600,  900): 4.12 MB/frame, total raw video size:  7.2 GB
+# At resolution (1200,  900): 3.09 MB/frame, total raw video size:  5.4 GB
+# At resolution (1024,  768): 2.25 MB/frame, total raw video size:  4.0 GB
+# At resolution ( 800,  600): 1.37 MB/frame, total raw video size:  2.4 GB
+# At resolution ( 512,  384): 0.56 MB/frame, total raw video size:  1.0 GB
+# At resolution ( 400,  300): 0.34 MB/frame, total raw video size:  0.6 GB
