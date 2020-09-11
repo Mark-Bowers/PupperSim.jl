@@ -71,12 +71,12 @@ end
 
 Creates a Robot controller with specified initial velocity and yaw_rate
 """
-function pupper(velocity = 0.4, yaw_rate = 0.0)
+function pupper(velocity = 0.1, yaw_rate = 0.0)
    config = Configuration()
-   config.z_clearance = 0.01     # height to pick up each foot during trot
+   # config.z_clearance = 0.01     # height to pick up each foot during trot
 
    command = Command([velocity, 0], yaw_rate, crouch_height)
-   command.pitch = 0.1
+   # command.pitch = 0.1
 
    # Create the robot (controller and controller state)
    Robot(config, command)
