@@ -1,4 +1,5 @@
 const crouch_height = -0.06
+# const crouch_height = -0.14
 const normal_height = -0.16
 
 function step_script(s::mjSim, robot)

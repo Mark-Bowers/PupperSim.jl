@@ -3,3 +3,6 @@ videos
 puppersim.mp4
 *.out
 *temp*
+*LOG*
+*.ini
+.DS_Store
