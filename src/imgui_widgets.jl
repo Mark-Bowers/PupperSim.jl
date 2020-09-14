@@ -101,9 +101,8 @@ function render_camera_view(s::mjSim)
 
     # Show image
     CImGui.Begin("Camera View")
-    width = Int(s.camviewport.width); height = Int(s.camviewport.height)    # convert Int32 to Int
-    ImGui_ImplOpenGL3_UpdateImageTexture(s.camviewid, s.cambuf, width, height, format = GL_RGB)
-    CImGui.Image(Ptr{Cvoid}(s.camviewid), (width, height))
+    ImGui_ImplOpenGL3_UpdateImageTexture(s.camviewid, s.cambuf, s.camviewport.width, s.camviewport.height, format = GL_RGB)
+    CImGui.Image(Ptr{Cvoid}(s.camviewid), (s.camviewport.width, s.camviewport.height))
     CImGui.End()
 
     # ImGui rendering
