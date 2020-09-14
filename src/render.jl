@@ -13,7 +13,7 @@ function render(s::PupperSim.mjSim, w::GLFW.Window)
     #mjui_render(s.ui1, s.uistate, s.con)
 
     # display head mounted camera image
-    s.showcam && render_image(s)            # must occur after main screen render
+    s.showcam && render_camera_view(s)  # must occur after main screen render
 
     # If recording, record frame this frame
     s.record === nothing || record_video_frame(s, width, height)

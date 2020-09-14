@@ -78,7 +78,7 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
     <geom type="plane" material="Oak" size="2 2 .4" conaffinity="1" condim="3" name="floor"/>
     <body>
       <joint type="free" limited="false" damping=".3"/>
-      <geom type="sphere" material="BrushedAluminum" pos="0.5 0.5 0.07" size="0.07" conaffinity="1" condim="3" name="ball1"/>
+      <geom type="sphere" material="BrushedAluminum" pos="0.5 0.5 0.07" size="0.07" conaffinity="1" condim="3" name="ball1" rgba="1 0 0 1"/>
     </body>
     <!-- <body>
       <joint type="free" limited="false" damping=".3"/>
