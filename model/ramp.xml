@@ -21,7 +21,13 @@
     <worldbody>
         <body pos="0 0.06464728749274644 0.25858914997098575">
             <freejoint/>
-            <geom type="box" size=".05 .025 .05" quat="0.9238795325112867 0.3826834323650898 0 0" material="matobj"/>
+            <geom name="blockg" type="box" size=".05 .025 .05" quat="0.9238795325112867 0.3826834323650898 0 0" material="matobj"/>
+            <site name="blocks" type="box" size=".05 .025 .05" rgba="0 255 0 .4"/>
         </body>
     </worldbody>
+
+    <sensor>
+        <framelinvel name="gvel" objtype="geom" objname="blockg"/>
+        <velocimeter name="lvel" site="blocks"/>
+    </sensor>
 </mujoco>
