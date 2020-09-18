@@ -26,7 +26,7 @@
         <!-- <texture name="texcarpet" type="2d" file="carpet.png"/> -->
         <texture name="texplane" type="2d" file="Oak.png"/>
         <!-- <texture name="texsponge" type="2d" file="sponge.png"/> -->
-        <texture name="texmarble" type="cube" file="marble.png"/>
+        <texture name="texmarble" type="cube" file="Marble.png"/>
 
         <material name="matplane" reflectance="0.3" texture="texplane" texrepeat="1 1" texuniform="true"/>
         <material name="matobj" reflectance="0.3" texture="texobj" texrepeat="1 1" texuniform="true"/>
@@ -40,6 +40,12 @@
         <light directional="true" diffuse=".6 .6 .6" specular="0.2 0.2 0.2" pos="0 0 4" dir="0 0 -1"/>
         <geom name="ground" type="plane" size="0 0 1" pos="0 0 0" material="matplane" condim="1"/>
         <!-- <geom type="box" size=".2 .2 .2" material="matmarble" pos="0 0 -0.09142135623730951" quat="0.9238795325112867 0.5 0 0" group="1" condim="3" name="ramp30"/> -->
-        <geom type="box" size=".2 .2 .2" material="matmarble" quat="0.9238795325112867 0.3826834323650898 0 0" group="1" condim="3" name="ramp45" />
+        <!-- quat = "cos(π/8) sin(π/8) 0 0". This corresponds to a 45 degree
+            rotation about vecotor [1, 0, 0] (i.e. x-axis) to create a 45 degree ramp-->
+        <geom type="box" size=".2 .2 .2" material="matmarble" quat="0.9238795325112867 0 0.3826834323650898 0" group="1" condim="3" name="ramp45"/>
     </worldbody>
+
+    <!-- <sensor>
+        <velocimeter name="final velocity" site="bottom"/>
+    </sensor> -->
 </mujoco>
