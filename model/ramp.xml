@@ -11,8 +11,8 @@
     <include file="rampscene.xml"/>
 
     <default>
-      <geom friction="0 0.005 0.0001"/>
-  </default>
+        <geom friction="0.5 0.005 0.0001"/>
+    </default>
 
     <option solver="CG" tolerance="1e-6"/>
 
@@ -21,8 +21,8 @@
     <worldbody>
         <body pos="0 0.06464728749274644 0.25858914997098575" quat="0.9238795325112867 0.3826834323650898 0 0">
             <freejoint/>
-            <geom name="blockg" type="box" size=".05 .025 .05" material="matobj"/>
-            <site name="blocks" type="box" size=".05 .025 .05" rgba="0 255 0 .4"/>
+            <geom name="blockg" type="box" size=".05 .01 .05" material="matobj"/>
+            <site name="blocks" type="box" size=".05 .01 .05" rgba="0 255 0 .4"/>
         </body>
     </worldbody>
 
