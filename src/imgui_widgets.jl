@@ -62,11 +62,11 @@ function get_cameraview_image(s::mjSim)
 
     # Save current camera view
     current_camid = s.cam[].fixedcamid
-    current_camtype = s.cam[]._type
+    current_camtype = s.cam[].type
 
     # Switch to head mounted camera view
     s.cam[].fixedcamid = s.camid
-    s.cam[]._type = Int(mj.CAMERA_FIXED)
+    s.cam[].type = MJCore.mjCAMERA_FIXED
 
     # Update camera for the head mounted camera
     mjv_updateCamera(s.m, s.d, s.cam, s.scn)
@@ -77,7 +77,7 @@ function get_cameraview_image(s::mjSim)
 
     # Restore current camera view
     s.cam[].fixedcamid = current_camid
-    s.cam[]._type = current_camtype
+    s.cam[].type = current_camtype
 
     # Update camera for the restored camera
     mjv_updateCamera(s.m, s.d, s.cam, s.scn)

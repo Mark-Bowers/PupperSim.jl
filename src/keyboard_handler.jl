@@ -99,7 +99,7 @@ const keycmds = Dict{GLFW.Key, Function}(
         s.showfullscreen ? GLFW.MaximizeWindow(s.window) : GLFW.RestoreWindow(s.window)
     end,
     #GLFW.KEY_F6=>(s)->begin  # stereo
-    #   s.stereo = s.scn.stereo == mj.mjSTEREO_NONE ? mjSTEREO_QUADBUFFERED : mj.mjSTEREO_NONE
+    #   s.stereo = s.scn.stereo == MJCore.mjSTEREO_NONE ? mjSTEREO_QUADBUFFERED : MJCore.mjSTEREO_NONE
     #   s.scn[].stereo
     #end,
     GLFW.KEY_F7=>(s)->begin  # sensor figure
@@ -117,7 +117,7 @@ const keycmds = Dict{GLFW.Key, Function}(
         s.paused ? println("Paused") : println("Running")
     end,
     GLFW.KEY_PAGE_UP=>(s)->begin    # previous keyreset
-        s.keyreset = min(s.m.m[].nkey - 1, s.keyreset + 1)
+        s.keyreset = min(s.m.nkey - 1, s.keyreset + 1)
     end,
     GLFW.KEY_PAGE_DOWN=>(s)->begin  # next keyreset
         s.keyreset = max(-1, s.keyreset - 1)
@@ -125,8 +125,8 @@ const keycmds = Dict{GLFW.Key, Function}(
     # continue with reset
     GLFW.KEY_BACKSPACE=>(s)->begin  # reset
         mj_resetData(s.m.m, s.d.d)
-        if s.keyreset >= 0 && s.keyreset < s.m.m[].nkey
-            s.d[].time = s.m.key_time[s.keyreset+1]
+        if s.keyreset >= 0 && s.keyreset < s.m.nkey
+            s.time = s.m.key_time[s.keyreset+1]
             s.d.qpos[:] = s.m.key_qpos[:,s.keyreset+1]
             s.d.qvel[:] = s.m.key_qvel[:,s.keyreset+1]
             s.d.act[:]  = s.m.key_act[:,s.keyreset+1]
@@ -144,11 +144,11 @@ const keycmds = Dict{GLFW.Key, Function}(
     end,
     GLFW.KEY_LEFT=>(s)->begin  # step back
     #    if s.paused
-    #       dt = s.m.m[].opt.timestep
-    #       s.m.m[].opt.timestep = -dt
+    #       dt = s.m.opt.timestep
+    #       s.m.opt.timestep = -dt
     #       #cleartimers(s.d)
     #       mj_step(s.m, s.d)
-    #       s.m.m[].opt.timestep = dt
+    #       s.m.opt.timestep = dt
     #       #profilerupdate()
     #       sensorupdate(s)
     #    end
@@ -163,17 +163,17 @@ const keycmds = Dict{GLFW.Key, Function}(
     end,
     GLFW.KEY_UP=>(s)->begin  # step back 100
     #    if s.paused
-    #       dt = s.m.m[].opt.timestep
-    #       s.m.m[].opt.timestep = -dt
+    #       dt = s.m.opt.timestep
+    #       s.m.opt.timestep = -dt
     #       #cleartimers(d)
     #       for n=1:100 mj_step(s.m, s.d) end
-    #       s.m.m[].opt.timestep = dt
+    #       s.m.opt.timestep = dt
     #       #profilerupdate()
     #       sensorupdate(s)
     #    end
     end,
     GLFW.KEY_ESCAPE=>(s)->begin  # free camera
-        s.cam[]._type = Int(mj.CAMERA_FREE)
+        s.cam[].type = MJCore.CAMERA_FREE
     end,
     GLFW.KEY_EQUAL=>(s)->begin  # bigger font
         if fontscale < 200
@@ -188,25 +188,25 @@ const keycmds = Dict{GLFW.Key, Function}(
         end
     end,
     GLFW.KEY_LEFT_BRACKET=>(s)->begin  # '[' previous fixed camera or free
-        fixedcamtype = s.cam[]._type
-        if s.m.m[].ncam > 0 && fixedcamtype == Int(mj.CAMERA_FIXED)
+        fixedcamtype = s.cam[].type
+        if s.m.ncam > 0 && fixedcamtype == MJCore.mjCAMERA_FIXED
             fixedcamid = s.cam[].fixedcamid
             if (fixedcamid  > 0)
                 s.cam[].fixedcamid = fixedcamid-1
             elseif fixedcamid == 0
-                s.cam[]._type = Int(mj.CAMERA_FREE)
+                s.cam[].type = MJCore.mjCAMERA_FREE
                 s.cam[].fixedcamid = fixedcamid-1
             end
         end
     end,
     GLFW.KEY_RIGHT_BRACKET=>(s)->begin  # ']' next fixed camera
-        if s.m.m[].ncam > 0
-            fixedcamtype = s.cam[]._type
+        if s.m.ncam > 0
+            fixedcamtype = s.cam[].type
             fixedcamid = s.cam[].fixedcamid
-                if fixedcamid < s.m.m[].ncam - 1
-                    s.cam[].fixedcamid = fixedcamid+1
-                    s.cam[]._type = Int(mj.CAMERA_FIXED)
-                end
+            if fixedcamid < s.m.ncam - 1
+                s.cam[].fixedcamid = fixedcamid+1
+                s.cam[].type = MJCore.mjCAMERA_FIXED
+            end
         end
     end,
     GLFW.KEY_SEMICOLON=>(s)->begin  # cycle over frame rendering modes
@@ -215,7 +215,7 @@ const keycmds = Dict{GLFW.Key, Function}(
     end,
     GLFW.KEY_APOSTROPHE=>(s)->begin  # cycle over frame rendering modes
         frame = s.vopt.frame
-        s.vopt[].frame = min(Int(mj.NFRAME)-1, frame+1)
+        s.vopt[].frame = min(MJCore.mjNFRAME-1, frame+1)
     end,
     GLFW.KEY_PERIOD=>(s)->begin  # cycle over label rendering modes
         label = s.vopt.label
@@ -223,7 +223,7 @@ const keycmds = Dict{GLFW.Key, Function}(
     end,
     GLFW.KEY_SLASH=>(s)->begin  # cycle over label rendering modes
         label = s.vopt.label
-        s.vopt[].label = min(Int(mj.NLABEL)-1, label+1)
+        s.vopt[].label = min(MJCore.mjNLABEL-1, label+1)
     end
 )
 
@@ -233,25 +233,27 @@ function quit(s::mjSim)
 end
 
 function keyboard_visualization_keys(s::mjSim, key::GLFW.Key, mods::Int32)
-    #println("NVISFLAG: $(Int(mj.NVISFLAG)), mj.VISSTRING: $(mj.VISSTRING)\nNRNDFLAG: $(Int(mj.NRNDFLAG)), RNDSTRING: $(mj.RNDSTRING), NGROUP: $(mj.NGROUP)")
+    #println("mjNVISFLAG: $(MJCore.mjNVISFLAG), mjVISSTRING: $(MJCore.mjVISSTRING)\nmjNRNDFLAG: $(MJCore.mjNRNDFLAG), mjRNDSTRING: $(MJCore.mjRNDSTRING), mjNGROUP: $(MJCore.mjNGROUP)")
 
     # toggle visualization flag
     # NVISFLAG: 22, VISSTRING: ["Convex Hull" "0" "H"; "Texture" "1" "X"; "Joint" "0" "J"; "Actuator" "0" "U"; "Camera" "0" "Q"; "Light" "0" "Z"; "Tendon" "0" "V"; "Range Finder" "0" "Y"; "Constraint" "0" "N"; "Inertia" "0" "I"; "SCL Inertia" "0" "S"; "Perturb Force" "0" "B"; "Perturb Object" "1" "O"; "Contact Point" "0" "C"; "Contact Force" "0" "F"; "Contact Split" "0" "P"; "Transparent" "0" "T"; "Auto Connect" "0" "A"; "Center of Mass" "0" "M"; "Select Point" "0" "E"; "Static Body" "0" "D"; "Skin" "0" ";"]
     if key != GLFW.KEY_S
-        for i=1:Int(mj.NVISFLAG)
-            if Int(key) == Int(mj.VISSTRING[i,3][1])
-            flags = MVector(s.vopt[].flags)
-            flags[i] = flags[i] == 0 ? 1 : 0
-            s.vopt[].flags = flags
-            return
+        for i=1:MJCore.mjNVISFLAG
+            #name = MJCore.mjVISSTRING[1, i]
+            #println("Comparing $(Int(key)) to $(MJCore.mjVISSTRING[3, i][1])")
+            if Int(key) == Int(MJCore.mjVISSTRING[3, i][1])
+                flags = MVector(s.vopt[].flags)
+                flags[i] = flags[i] == 0 ? 1 : 0
+                s.vopt[].flags = flags
+                return
             end
         end
     end
 
     # toggle rendering flag
     # NRNDFLAG: 9,  RNDSTRING: ["Shadow" "1" "S"; "Wireframe" "0" "W"; "Reflection" "1" "R"; "Additive" "0" "L"; "Skybox" "1" "K"; "Fog" "0" "G"; "Haze" "1" "/"; "Segment" "0" ","; "Id Color" "0" "."], NGROUP: 6
-    for i=1:Int(mj.NRNDFLAG)
-        if Int(key) == Int(mj.RNDSTRING[i,3][1])
+    for i=1:MJCore.mjNRNDFLAG
+        if Int(key) == MJCore.mjRNDSTRING[3, i][1]
             flags = MVector(s.scn[].flags)
             flags[i] = flags[i] == 0 ? 1 : 0
             s.scn[].flags = flags
@@ -260,7 +262,7 @@ function keyboard_visualization_keys(s::mjSim, key::GLFW.Key, mods::Int32)
     end
 
     # toggle geom/site group
-    for i=1:Int(mj.NGROUP)
+    for i=1:MJCore.mjNGROUP
         if Int(key) == i + Int('0')
             if mods & GLFW.MOD_SHIFT == true
                 sitegroup = MVector(s.vopt[].sitegroup)

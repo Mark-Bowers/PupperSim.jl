@@ -3,7 +3,7 @@ const crouch_height = -0.06
 const normal_height = -0.16
 
 function step_script(s::mjSim, robot)
-    elapsed_time = round(Int, s.d.d[].time * 1000)  # elapsed time in milliseconds (non-paused simulation)
+    elapsed_time = round(Int, s.d.time * 1000)  # elapsed time in milliseconds (non-paused simulation)
 
     # check every 100 milliseconds for another action to take
     if !s.paused && elapsed_time % 100 == 0 && elapsed_time > 0

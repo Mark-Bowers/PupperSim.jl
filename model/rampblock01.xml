@@ -1,0 +1,39 @@
+<mujoco model="Ramp">
+    <!--  Copyright © 2018, Roboti LLC
+
+          This file is licensed under the MuJoCo Resource License (the "License").
+          You may not use this file except in compliance with the License.
+          You may obtain a copy of the License at
+
+            https://www.roboti.us/resourcelicense.txt
+    -->
+
+    <include file="rampscene.xml"/>
+
+    <default>
+      <geom friction="0.1 0.005 0.0001"/>
+  </default>
+
+    <option solver="CG" tolerance="1e-6"/>
+
+    <size nconmax="500" njmax="5000" nstack="5000000"/>
+
+    <worldbody>
+        <!-- y = width_box * sqrt(2), z = height of ramp = 0.02*sqrt(2) -->
+        <!-- quat = "cos(π/8) sin(π/8) 0 0". This corresponds to a 45 degree
+            rotation about vecotor [1, 0, 0] (i.e. x-axis) to create a 45 degree ramp-->
+        <body pos="0.03535533905932738 0 0.28284271247461906" quat="0.9238795325112867 0 0.3826834323650898 0">
+            <freejoint/>
+            <!-- <geom type="box" size=".025 .05 .025" quat="0.9238795325112867 0 0.3826834323650898 0" material="matobj"/> -->
+            <geom name="blockg" type="box" size=".025 .05 .025" material="matobj"/>
+            <site name="blocks" type="box" size=".025 .05 .025" rgba="0 255 0 .2"/>
+
+        </body>
+    </worldbody>
+
+    <sensor>
+        <framelinvel name="gvel" objtype="geom" objname="blockg"/>
+        <velocimeter name="lvel" site="blocks"/>
+    </sensor>
+
+</mujoco>

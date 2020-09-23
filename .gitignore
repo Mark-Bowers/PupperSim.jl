@@ -6,3 +6,4 @@ puppersim.mp4
 *LOG*
 *.ini
 .DS_Store
+*ipynb_checkpoints
