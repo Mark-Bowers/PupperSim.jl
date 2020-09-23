@@ -25,7 +25,7 @@ function sensorupdate(s::mjSim)
     d = s.d
 
     # loop over sensors
-    for n=1:m.m[].nsensor
+    for n=1:m.nsensor
         # get info about this sensor
         cutoff = m.sensor_cutoff[n] > 0 ? m.sensor_cutoff[n] : 1.0
         adr = m.sensor_adr[n]

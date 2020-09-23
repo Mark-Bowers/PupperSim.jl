@@ -16,11 +16,11 @@ function mouse_move(s::mjSim, window::GLFW.Window, xpos::Float64, ypos::Float64)
 
     # determine action based on mouse button
     if s.button_right
-        action = mod_shift ? Int(mj.MOUSE_MOVE_H) : Int(mj.MOUSE_MOVE_V)
+        action = mod_shift ? MJCore.mjMOUSE_MOVE_H : MJCore.mjMOUSE_MOVE_V
     elseif s.button_left
-        action = mod_shift ? Int(mj.MOUSE_ROTATE_H) : Int(mj.MOUSE_ROTATE_V)
+        action = mod_shift ? MJCore.mjMOUSE_ROTATE_H : MJCore.mjMOUSE_ROTATE_V
     else
-        action = Int(mj.MOUSE_ZOOM)
+        action = MJCore.mjMOUSE_ZOOM
     end
 
     # move perturb or camera
@@ -66,14 +66,14 @@ function mouse_button(s::mjSim, window::GLFW.Window,
     if act == GLFW.PRESS && mods == GLFW.MOD_CONTROL && s.pert[].select > 0
         # right: translate;  left: rotate
         if s.button_right
-            newperturb = Int(mj.PERT_TRANSLATE)
-        elseif s.button_left
-            newperturb = Int(mj.PERT_ROTATE)
+            newperturb = MJCore.mjPERT_TRANSLATE
+        else    #if s.button_left
+            newperturb = MJCore.mjPERT_ROTATE
         end
         # perturbation onset: reset reference
-        if newperturb>0 && s.pert[].active==0
-            mjv_initPerturb(s.m.m, s.d.d, s.scn, s.pert)
-        end
+        #if newperturb>0
+            s.pert[].active==0 && mjv_initPerturb(s.m.m, s.d.d, s.scn, s.pert)
+        #end
     end
     s.pert[].active = newperturb
 
@@ -91,8 +91,8 @@ function mouse_button(s::mjSim, window::GLFW.Window,
         width, height = GLFW.GetWindowSize(window)
 
         # find geom and 3D click point, get corresponding body
-        selpnt = zeros(3)
-        selgeom, selskin = Int32(0), Int32(0)
+        selpnt = zeros(MVector{3,Float64})
+        selgeom, selskin = Ref(Cint(0)), Ref(Cint(0))
         selbody = mjv_select(s.m.m, s.d.d, s.vopt,
                             width / height, x / width,
                             (height - y) / height,
@@ -107,7 +107,7 @@ function mouse_button(s::mjSim, window::GLFW.Window,
 
             # switch to tracking camera
             if selmode == 3 && selbody >= 0
-                s.cam[]._type = Int(mj.CAMERA_TRACKING)
+                s.cam[].type = MJCore.mjCAMERA_TRACKING
                 s.cam[].trackbodyid = selbody
                 s.cam[].fixedcamid = -1
             end
@@ -120,7 +120,7 @@ function mouse_button(s::mjSim, window::GLFW.Window,
 
                 # record selection
                 s.pert[].select = selbody
-                s.pert[].skinselect = selskin
+                s.pert[].skinselect = selskin[]
             else
                 s.pert[].select = 0
                 s.pert[].skinselect = -1
@@ -139,7 +139,7 @@ end
 
 function scroll(s::mjSim, window::GLFW.Window, xoffset::Float64, yoffset::Float64)
     # scroll: emulate vertical mouse motion = 5% of window height
-    mjv_moveCamera(s.m.m, Int(mj.MOUSE_ZOOM), 0.0, -0.05 * yoffset, s.scn, s.cam)
+    mjv_moveCamera(s.m.m, MJCore.mjMOUSE_ZOOM, 0.0, -0.05 * yoffset, s.scn, s.cam)
 end
 
 function drop(window::GLFW.Window,

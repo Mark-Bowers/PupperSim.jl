@@ -2,7 +2,7 @@ include("imgui_widgets.jl")
 
 function render(s::PupperSim.mjSim, w::GLFW.Window)
     # Update scene
-    mjv_updateScene(s.m, s.d, s.vopt, s.pert, s.cam, Int(mj.CAT_ALL), s.scn)
+    mjv_updateScene(s.m, s.d, s.vopt, s.pert, s.cam, MJCore.mjCAT_ALL, s.scn)
 
     # acquire head mounted camera image
     s.showcam && get_cameraview_image(s)    # must occur before main screen render

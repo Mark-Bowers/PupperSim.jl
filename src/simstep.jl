@@ -33,10 +33,10 @@ function simstep(s::mjSim)
         factor = s.slowmotion ? 10 : 1
 
         # advance effective simulation time by 1/refreshrate
-        startsimtm = d.d[].time
+        startsimtm = d.time
         starttm = time()
         refreshtm = 1.0/(factor*s.refreshrate)
-        updates = refreshtm / m.m[].opt.timestep
+        updates = refreshtm / m.opt.timestep
 
         steps = round(Int, round(s.framecount+updates)-s.framecount)
         s.framecount += updates
@@ -52,7 +52,7 @@ function simstep(s::mjSim)
             mj_step(m, d)
 
             # break on reset
-            (d.d[].time < startsimtm) && break
+            (d.time < startsimtm) && break
         end
     end
 end

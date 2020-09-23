@@ -7,7 +7,8 @@
 export loadmodel, pupper, simulate
 
 @time using GLFW                    # 0.418646 seconds (564.20 k allocations: 33.920 MiB)
-@time using MuJoCo                  # 0.705183 seconds (2.45 M allocations: 162.621 MiB)
+@time using MuJoCo                  # 2.657531 seconds (10.89 M allocations: 579.276 MiB, 6.15% gc time), was 0.705183 seconds (2.45 M allocations: 162.621 MiB)
+      using MuJoCo.MJCore           # 0.000602 seconds (463 allocations: 28.750 KiB)
       using StaticArrays            # 0.000598 seconds (482 allocations: 29.875 KiB)
 @time using FixedPointNumbers       # 0.058240 seconds (121.71 k allocations: 7.553 MiB)
 @time using ColorTypes              # 0.352808 seconds (366.70 k allocations: 22.285 MiB)
@@ -43,27 +44,25 @@ include("setup.jl")
 Loads MuJoCo XML model and starts the simulation
 """
 function loadmodel(
-      modelfile = normpath(joinpath(dirname(pathof(@__MODULE__)), "../model/Pupper.xml")),
-      width = 1920, height = 1080
-   )
-   ptr_m = mj_loadXML(modelfile, C_NULL)
-   ptr_d = mj_makeData(ptr_m)
-   m, d = mj.mapmujoco(ptr_m, ptr_d)
-   mj_forward(m, d)
+        modelfile = normpath(joinpath(dirname(pathof(@__MODULE__)), "../model/Pupper.xml")),
+        width = 1920, height = 1080
+    )
+    m = jlModel(modelfile)
+    d = jlData(m)
 
-   s = PupperSim.setup(m, d, width, height)
+    s = PupperSim.setup(m, d, width, height)
 
-   s.modelfile = modelfile
-   @info("Model file: $modelfile")
+    s.modelfile = modelfile
+    @info("Model file: $modelfile")
 
-   # Turn off shadows initially on Linux
-   flags = MVector(s.scn[].flags)
-   flags[1] = !Sys.islinux()
-   s.scn[].flags = flags
+    # Turn off shadows initially on Linux
+    flags = MVector(s.scn[].flags)
+    flags[1] = !Sys.islinux()
+    s.scn[].flags = flags
 
-   GLFW.SetWindowRefreshCallback(s.window, (w)->render(s,w))    # Called on window resize
+    GLFW.SetWindowRefreshCallback(s.window, (w)->render(s,w))    # Called on window resize
 
-   return s
+    return s
 end
 
 """
@@ -72,14 +71,14 @@ end
 Creates a Robot controller with specified initial velocity and yaw_rate
 """
 function pupper(velocity = 0.1, yaw_rate = 0.0)
-   config = Configuration()
-   config.z_clearance = 0.02     # height to pick up each foot during trot
+    config = Configuration()
+    config.z_clearance = 0.02     # height to pick up each foot during trot
 
-   command = Command([velocity, 0], yaw_rate, crouch_height)
-   # command.pitch = 0.1
+    command = Command([velocity, 0], yaw_rate, crouch_height)
+    # command.pitch = 0.1
 
-   # Create the robot (controller and controller state)
-   Robot(config, command)
+    # Create the robot (controller and controller state)
+    Robot(config, command)
 end
 
 include("simstep.jl")
@@ -103,9 +102,9 @@ function simulate(s::mjSim = loadmodel(), robot::Union{Robot, Nothing} = pupper(
         GLFW.PollEvents()
     end
 
-   GLFW.DestroyWindow(s.window)
+    GLFW.DestroyWindow(s.window)
 
-   return
+    return
 end
 
 """
@@ -114,7 +113,7 @@ end
 Run the simulation loop
 """
 function simulate(modelpath::String, width = 0, height = 0, robot = nothing)
-   simulate(loadmodel(modelpath, width, height), robot)
+    simulate(loadmodel(modelpath, width, height), robot)
 end
 
 end
