@@ -1,0 +1,252 @@
+<!-- Stanford Woofer Model
+
+The state space is populated with joints in the order that they are
+defined in this file.
+
+The elements of the control variable s.d.ctrl correspond to:
+[fr_x, fr_y, fr_ext,
+fl_x, fl_y, fl_ext,
+br_x, br_y, br_ext,
+bl_x, bl_y, bl_ext]
+
+fr = front-right
+fl = front-left
+br = back-right
+bl = back-left
+_x indicates rotation on the forward/back axis of the robot
+_y indicates rotation on the left/right axis of the hip module
+_ext indicates linear extension of the leg. Positive values = leg goes up
+-->
+<mujoco model="Pupper">
+<compiler angle="radian" meshdir="mesh/" texturedir="texture/"/>
+
+  <visual>
+    <quality shadowsize="16384"/>
+  </visual>
+
+  <default>
+    <joint type="hinge" limited="true" armature="0.01936" solimplimit="0.9 0.95 0.01" solreflimit="0.01 1" stiffness="0.1" damping="0.5"/>
+    <geom conaffinity="0" contype="1" friction="0.2 0.0005 0.00001" condim="6" solimp="0.9 0.95 0.01" solref="0.01 1"/>
+    <position forcelimited="true"/>
+</default>
+
+
+    <include file="rampscene2.xml"/>
+
+    <option solver="CG" tolerance="1e-6"/>
+
+    <size nconmax="500" njmax="5000" nstack="5000000"/>
+
+<!--<sensor>
+    <accelerometer name="accel" noise="0.01" site="imu_site"/>
+    <gyro name="gyro" noise="0.02" site="imu_site"/>
+</sensor>-->
+
+<size nstack="300000" nuser_geom="1"/>
+
+<option timestep="0.0001"/>
+
+<asset>
+    <texture builtin="gradient" height="100" rgb1="1 1 1" rgb2="0 0 0" type="skybox" width="100"/>
+    <texture builtin="flat" height="1278" mark="cross" markrgb="1 1 1" name="texgeom" random="0.01" rgb1="0.8 0.6 0.4" rgb2="0.8 0.6 0.4" type="cube" width="127"/>
+    <!-- <texture builtin="checker" height="100" name="texplane" rgb1="0 0 0" rgb2="0.8 0.8 0.8" type="2d" width="100"/> -->
+    <!-- <material name="MatPlane" reflectance="0.5" shininess="1" specular="1" texrepeat="60 60" texture="texplane"/> -->
+    <material name="geom" texture="texgeom" texuniform="true"/>
+  <mesh file="Body.stl"/>
+  <mesh file="CLS6336HV.stl"/>
+  <mesh file="Hub.stl"/>
+  <mesh file="ServoHorn.stl"/>
+  <mesh file="UpperLeg.stl"/>
+  <mesh file="LowerLeg.stl"/>
+  <!-- <texture type="2d" file="BrushedAluminum.png"/> -->
+  <texture type="2d" file="Oak.png"/>
+  <texture type="2d" file="CarbonFiber2D.png" name="CarbonFiber2D"/>
+  <texture type="cube" file="CarbonFiber.png" gridsize="3 4" gridlayout=".U..LFRB.D.."/>
+  <texture type="cube" file="CLS6336HV.png"/>
+  <!-- <texture type="cube" file="Marble.png"/> -->
+  <!-- <material name="BrushedAluminum" texture="BrushedAluminum" specular="0.9" shininess="0.9" reflectance="0.3"/> -->
+  <material name="CarbonFiber" texture="CarbonFiber" specular="0.9" shininess="0.9" reflectance="0.3"/>
+  <material name="CLS6336HV" texture="CLS6336HV" specular="0.9" shininess="0.9" reflectance="0.3"/>
+  <material name="CarbonFiber2D" texture="CarbonFiber2D" specular="0.9" shininess="0.9" reflectance="0.3"/>
+  <material name="Oak" texture="Oak" specular="0.9" shininess="0.9" reflectance="0.3" texrepeat="4 4"/>
+  <material name="ABS" rgba=".1 .1 .1 1"/>
+  <!-- <material name="Marble" texture="Marble" rgba=".7 .65 .65 0.9"/> -->
+</asset>
+
+<worldbody>
+    <!--<light cutoff="100" diffuse="1 1 1" dir="-0 0 -1.3" directional="true" exponent="1" pos="0 0 1.3" specular=".1 .1 .1"/>
+    <geom conaffinity="1" condim="3" material="MatPlane" name="floor" rgba="0.8 0.9 0.8 1" size="40 40 40" type="plane"/>-->
+    <light pos="0.4 -0.2 1.5" dir="-0.4 0.2 -1.5" cutoff="35"/>
+    <!--<geom type="plane" material="Oak" size="10 10 .1" conaffinity="1" condim="3" name="floor"/>-->
+    <geom type="plane" material="Oak" size="2 2 .4" conaffinity="1" condim="3" name="floor"/>
+    <!-- <body>
+      <joint type="free" limited="false" damping=".3"/>
+      <geom type="sphere" material="BrushedAluminum" pos="0.5 0.5 0.07" size="0.07" conaffinity="1" condim="3" name="ball1" rgba="1 0 0 1"/>
+    </body> -->
+    <!-- <body>
+      <joint type="free" limited="false" damping=".3"/>
+      <geom type="sphere" material="Marble" pos="0.35 0 0.15" size="0.15" conaffinity="1" condim="3" name="ball2"/>
+    </body> -->
+    <!-- <geom type="box" material="Marble" pos="0 0.5 0.011" size="0.4 0.15 0.011" conaffinity="1" condim="3" name="obstacle"/> -->
+    <body name="torso" pos="-0.252 0 1.1225"  quat="0.9659258262890683 0 0.25881904510252074 0">
+        <camera name="track" mode="trackcom" pos="0 -2 0.3" xyaxes="1 0 0 0 0 1"/>
+        <freejoint/>
+        <!--<geom name="torso" size="0.151924 0.05 0.03425" type="box" rgba=".8 .1 .1 .1"/>-->
+        <!-- This is a +90 degree rotation about the z-axis (i.e. [0 0 1]).
+        Recall the real part yields cos(-3pi/4) = -sqrt(2)/2,
+         and the imaginary part yields sin(-3pi/4) = +sqrt(2)/2
+        Doubling theta to find the degree of rotation gives -3pi/2 = -270 degrees = +90 degrees-->
+        <body pos="0.0 0.0 -0.03425" quat="-0.7071068 0 0 0.7071068">
+          <camera name="puppercam" pos="0 0.12 0.11" quat="0.7453559925 0.6666666 0 0"/>
+          <geom type="mesh" mesh="Body" pos="0 -0.133925 0.0015" material="ABS"/>
+          <site type="box" pos="0 0 0.0666" size="0.03 0.15 0.002" material="CarbonFiber" rgba=".5 .5 .5 .1"/>
+          <!--fr servo-->
+          <!-- This is a +180 degree rotation about the vector sqrt(2)/2[-1 0 1].
+           Recall the real part yields cos(pi/2) = 0,
+           and the imaginary part yields sin(pi/2) = 1
+           Doubling theta to find the degree of rotation gives pi = 180 degrees
+           The vector [-1 0 1] is multiplied by a normalization constant of sqrt(2)/2 to give [-sqrt(2)/2 0 sqrt(2)/2]
+           Notice this is exactly equal to the imaginary part of the quaternion-->
+          <body pos="0.05 0.028 0.0542" quat="0 -0.7071068 0 0.7071068">
+            <geom type="mesh" mesh="CLS6336HV" material="ABS"/>
+            <site type="box" pos="0.0205 -0.02 0.01" size="0.018 0.019 0.0101" material="CLS6336HV"/>
+          </body>
+          <!--fl servo-->
+          <!-- This is a +180 degree rotation about the vector sqrt(2)/2[-1 0 1].
+           Recall the real part yields cos(pi/2) = 0,
+           and the imaginary part yields sin(pi/2) = 1
+           Doubling theta to find the degree of rotation gives pi = 180 degrees
+           The vector [-1 0 1] is multiplied by a normalization constant of sqrt(2)/2 to give [-sqrt(2)/2 0 sqrt(2)/2]
+           Notice this is exactly equal to the imaginary part of the quaternion-->
+          <body pos="-0.03 0.028 0.0542" quat="0 -0.7071068 0 0.7071068">
+            <geom type="mesh" mesh="CLS6336HV" material="ABS"/>
+            <site type="box" pos="0.0205 -0.02 0.01" size="0.018 0.019 0.0101" material="CLS6336HV"/>
+          </body>
+          <!--br servo-->
+          <!-- This is a +180 degree rotation about the vector sqrt(2)/2[-1 0 1].
+           Recall the real part yields cos(pi/2) = 0,
+           and the imaginary part yields sin(pi/2) = 1
+           Doubling theta to find the degree of rotation gives pi = 180 degrees
+           The vector [-1 0 1] is multiplied by a normalization constant of sqrt(2)/2 to give [-sqrt(2)/2 0 sqrt(2)/2]
+           Notice this is exactly equal to the imaginary part of the quaternion-->
+          <body pos="0.05 -0.1721 0.0542" quat="0 -0.7071068 0 0.7071068">
+            <geom type="mesh" mesh="CLS6336HV" material="ABS"/>
+            <site type="box" pos="0.0205 -0.02 0.01" size="0.018 0.019 0.0101" material="CLS6336HV"/>
+          </body>
+          <body pos="-0.03 -0.1721 0.0542" quat="0 -0.7071068 0 0.7071068">
+            <!--bl servo-->
+            <geom type="mesh" mesh="CLS6336HV" material="ABS"/>
+            <site type="box" pos="0.0205 -0.02 0.01" size="0.018 0.019 0.0101" material="CLS6336HV"/>
+          </body>
+        </body>
+        <!--<site name="imu_site" size=".01 .01 .01" type="box"/>-->
+
+        <body name="fr_module" pos="0.1 -0.04 0">
+            <!--<geom pos="0 -0.0132 0" name="fr_block" type="box" size="0.0197 0.0372 0.0107" rgba="0.4 0.8 .4 .5"/>-->
+            <!-- This is a +90 degree rotation about the z-axis (i.e. [0 1 0]).
+            Recall the real part yields cos(-3pi/4) = -sqrt(2)/2,
+             and the imaginary part yields sin(-3pi/4) = +sqrt(2)/2
+            Doubling theta to find the degree of rotation gives -3pi/2 = -270 degrees = +90 degrees-->
+            <body pos="-0.02 -0.042 0.022" quat="0.7071068 0 0.7071068 0">
+              <geom type="mesh" mesh="Hub" material="ABS"/>
+              <!-- Why are there two different sites here? Do we even use both of them? -->
+              <site type="box" pos="0.0129 -0.02 0.02955" quat="0.7071068 0 -0.7071068 0" size="0.018 0.019 0.0101" material="CLS6336HV"/>
+              <site type="box" pos="0.0129 0.044 0.02955" quat="0 -0.7071068 0 0.7071068" size="0.018 0.019 0.0101" material="CLS6336HV"/>
+            </body>
+            <joint name="fr_x" axis="1 0 0" range="-1.57 1.57"/>
+            <body name="fr" pos="0 -0.03 0">
+                <joint name="fr_y" axis="0 1 0" range="-1.57 1.57"/>
+                <geom axisangle="0 1 0 0" name="fr" fromto="0 0 0 0 0 -0.125" size="0.01" type="capsule" material="CarbonFiber2D" density="50"/>
+                <body name="fr2" pos="0 0 -0.1235">
+                    <joint name="fr_y2" axis="0 1 0" range="-3.14 0.0"/>
+                    <geom axisangle="0 1 0 0" name="fr_l2" fromto="0 0 0 0 0 -0.125" size="0.01" type="capsule" material="CarbonFiber2D" density="50"/>
+                </body>
+            </body>
+        </body>
+
+        <body name="fl_module" pos="0.1 0.04 0">
+            <!--<geom pos = "0 0.0132 0" name="fl_block" type="box" size="0.0197 0.0372 0.0107" rgba="0.6 0.8 .4 1"/>-->
+            <body pos="-0.022 0.042 -0.004" quat="0 0.7071068 0 0.7071068">
+              <geom type="mesh" mesh="Hub" material="ABS"/>
+              <!-- Why are there two different sites here? Do we even use both of them? -->
+              <site type="box" pos="0.0129 -0.02 0.02955" quat="0.7071068 0 -0.7071068 0" size="0.018 0.019 0.0101" material="CLS6336HV"/>
+              <site type="box" pos="0.0129 0.044 0.02955" quat="0 -0.7071068 0 0.7071068" size="0.018 0.019 0.0101" material="CLS6336HV"/>
+            </body>
+            <joint name="fl_x" axis="1 0 0" range="-1.57 1.57"/>
+            <body name="fl" pos="0 0.03 0">
+                <joint name="fl_y" axis="0 1 0" range="-1.57 1.57"/>
+                <geom axisangle="0 1 0 0" name="fl" fromto="0 0 0 0 0 -0.125" size="0.01" type="capsule" material="CarbonFiber2D" density="50"/>
+                <body name="fl2" pos="0 0 -0.1235">
+                    <joint name="fl_y2" axis="0 1 0" range="-3.14 0.0"/>
+                    <geom axisangle="0 1 0 0" name="fl_l2" fromto="0 0 0 0 0 -0.125" size="0.01" type="capsule" material="CarbonFiber2D" density="50"/>
+                </body>
+            </body>
+        </body>
+
+        <body name="br_module" pos="-0.1 -0.04 0">
+            <!--<geom pos = "0 -0.0132 0" name="br_block" type="box" size="0.0197 0.0372 0.0107" rgba="0.6 0.8 .4 1"/>-->
+            <body pos="-0.02 -0.042 0.022" quat="0.7071068 0 0.7071068 0">
+              <geom type="mesh" mesh="Hub" material="ABS"/>
+              <!-- Why are there two different sites here? Do we even use both of them? -->
+              <site type="box" pos="0.0129 -0.02 0.02955" quat="0.7071068 0 -0.7071068 0" size="0.018 0.019 0.0101" material="CLS6336HV"/>
+              <site type="box" pos="0.0129 0.044 0.02955" quat="0 -0.7071068 0 0.7071068" size="0.018 0.019 0.0101" material="CLS6336HV"/>
+            </body>
+            <joint name="br_x" axis="1 0 0" range="-1.57 1.57"/>
+            <body name="br" pos="0 -0.03 0">
+                <joint name="br_y" axis="0 1 0" range="-1.57 1.57"/>
+                <geom axisangle="0 1 0 0" name="br" fromto="0 0 0 0 0 -0.125" size="0.01" type="capsule" material="CarbonFiber2D" density="50"/>
+                <body name="br2" pos="0 0 -0.1235">
+                    <joint name="br_y2" axis="0 1 0" range="-3.14 0.0"/>
+                    <geom axisangle="0 1 0 0" name="br_l2" fromto="0 0 0 0 0 -0.125" size="0.01" type="capsule" material="CarbonFiber2D" density="50"/>
+                </body>
+            </body>
+        </body>
+
+        <body name="bl_module" pos="-0.1 0.04 0">
+            <!--<geom pos = "0 0.0132 0" name="bl_block" type="box" size="0.0197 0.0372 0.0107" rgba="0.6 0.8 .4 1"/>-->
+            <body pos="-0.022 0.042 -0.004" quat="0 0.7071068 0 0.7071068">
+              <geom type="mesh" mesh="Hub" material="ABS"/>
+              <!-- Why are there two different sites here? Do we even use both of them? -->
+              <site type="box" pos="0.0129 -0.02 0.02955" quat="0.7071068 0 -0.7071068 0" size="0.018 0.019 0.0101" material="CLS6336HV"/>
+              <site type="box" pos="0.0129 0.044 0.02955" quat="0 -0.7071068 0 0.7071068" size="0.018 0.019 0.0101" material="CLS6336HV"/>
+            </body>
+            <joint name="bl_x" axis="1 0 0" range="-1.57 1.57"/>
+            <body name="bl" pos="0 0.03 0">
+                <joint name="bl_y" axis="0 1 0" range="-1.57 1.57"/>
+                <geom axisangle="0 1 0 0" name="bl" fromto="0 0 0 0 0 -0.125" size="0.01" type="capsule" material="CarbonFiber2D" density="50"/>
+                <body name="bl2" pos="0 0 -0.1235">
+                    <joint name="bl_y2" axis="0 1 0" range="-3.14 0.0"/>
+                    <geom axisangle="0 1 0 0" name="bl_l2" fromto="0 0 0 0 0 -0.125" size="0.01" type="capsule" material="CarbonFiber2D" density="50"/>
+                </body>
+            </body>
+        </body>
+    </body>
+</worldbody>
+
+<actuator>
+  <!-- gear: This attribute scales the length (and consequently moment arms, velocity and force) of the actuator, for all transmission types.
+             It is different from the gain in the force generation mechanism, because the gain only scales the force output and does not affect
+             the length, moment arms and velocity. For actuators with scalar transmission, only the first element of this vector is used.
+             The remaining elements are needed for joint, jointinparent and site transmissions where this attribute is used to specify 3D force
+             and torque axes.  -->
+  <!-- joint: This attribute determines the type of actuator transmission. If this attribute is specified, the actuator acts on the given joint.
+              For hinge and slide joints, the actuator length equals the joint position/angle times the first element of gear.  -->
+  <!-- kp: Position feedback gain.  -->
+  <!-- forcerange: Range for clamping the force output. The compiler expects the first value to be no greater than the second value.  -->
+      <position gear="1" joint="fr_x" name="fr_x"   kp="300" forcerange="-6.0 6.0"/>
+      <position gear="1" joint="fr_y" name="fr_y"   kp="300" forcerange="-6.0 6.0"/>
+      <position gear="1" joint="fr_y2" name="fr_y2" kp="300" forcerange="-6.0 6.0"/>
+
+      <position gear="1" joint="fl_x" name="fl_x"   kp="300" forcerange="-6.0 6.0"/>
+      <position gear="1" joint="fl_y" name="fl_y"   kp="300" forcerange="-6.0 6.0"/>
+      <position gear="1" joint="fl_y2" name="fl_y2" kp="300" forcerange="-6.0 6.0"/>
+
+      <position gear="1" joint="br_x" name="br_x"   kp="300" forcerange="-6.0 6.0"/>
+      <position gear="1" joint="br_y" name="br_y"   kp="300" forcerange="-6.0 6.0"/>
+      <position gear="1" joint="br_y2" name="br_y2" kp="300" forcerange="-6.0 6.0"/>
+
+      <position gear="1" joint="bl_x" name="bl_x"   kp="300" forcerange="-6.0 6.0"/>
+      <position gear="1" joint="bl_y" name="bl_y"   kp="300" forcerange="-6.0 6.0"/>
+      <position gear="1" joint="bl_y2" name="bl_y2" kp="300" forcerange="-6.0 6.0"/>
+</actuator>
+</mujoco>
