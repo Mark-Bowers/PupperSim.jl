@@ -31,11 +31,11 @@ function hflip!(A)
 end
 
 function alignscale(s::mjSim)
-    s.cam[].lookat = s.m.m[].stat.center
-    s.cam[].distance = 1.5*s.m.m[].stat.extent
+    s.cam[].lookat = s.m.stat.center
+    s.cam[].distance = 1.5*s.m.stat.extent
 
     # set to free camera
-    s.cam[]._type = Cint(mj.CAMERA_FREE)
+    s.cam[].type = MJCore.mjCAMERA_FREE
 end
 
 function str2vec(s::String, len::Int)

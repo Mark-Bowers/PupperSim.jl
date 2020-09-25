@@ -1,6 +1,6 @@
 # Globals
-const fontscale = mj.FONTSCALE_200  # can be 100, 150, 200
-const maxgeom = 5000                # preallocated geom array in mjvScene
+const FONTSCALE = MJCore.FONTSCALE_200  # can be 100, 150, 200
+const maxgeom = 5000                    # preallocated geom array in mjvScene
 
 include("sensor.jl")
 
@@ -10,15 +10,15 @@ include("mouse_handler.jl")
 
 # Utility functions for working with the model's cameras
 function list_named_cameras(m::jlModel)
-    println("Total number of named cameras: ", m.m[].ncam)
-    for i = 1:min(m.m[].ncam, mj.MAXUIMULTI-2)
+    println("Total number of named cameras: ", m.ncam)
+    for i = 1:min(m.ncam, mj.MAXUIMULTI-2)
         println("\t$i: $(mj_id2name(m, mj.OBJ_CAMERA, i-1))")
     end
 end
 
 function get_named_cam_id(m::jlModel, camera_name::AbstractString)
     # returns -1 if model does not contain the named camera
-    Int(mj_name2id(m, mj.OBJ_CAMERA, camera_name)::Int32)
+    Int(mj_name2id(m, MJCore.mjOBJ_CAMERA, camera_name)::Int32)
 end
 
 include("imgui_setup.jl")
@@ -50,10 +50,10 @@ function setup(mm::jlModel, dd::jlData, width=1200, height=900) # TODO named arg
     # mujoco setup
     mjv_defaultPerturb(s.pert)
     mjr_defaultContext(s.con)
-    mjr_makeContext(s.m, s.con, Int(fontscale)) # model specific setup
+    mjr_makeContext(s.m, s.con, FONTSCALE)  # model specific setup
 
     alignscale(s)
-    mjv_updateScene(s.m, s.d, s.vopt, s.pert, s.cam, Int(mj.CAT_ALL), s.scn)
+    mjv_updateScene(s.m, s.d, s.vopt, s.pert, s.cam, MJCore.mjCAT_ALL, s.scn)
 
     # List the named cameras
     # list_named_cameras(s.m)
