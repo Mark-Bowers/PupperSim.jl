@@ -11,8 +11,8 @@ include("mouse_handler.jl")
 # Utility functions for working with the model's cameras
 function list_named_cameras(m::jlModel)
     println("Total number of named cameras: ", m.ncam)
-    for i = 1:min(m.ncam, mj.MAXUIMULTI-2)
-        println("\t$i: $(mj_id2name(m, mj.OBJ_CAMERA, i-1))")
+    for i = 1:min(m.ncam, MJCore.MAXUIMULTI-2)
+        println("\t$i: $(mj_id2name(m, MJCore.mjOBJ_CAMERA, i-1))")
     end
 end
 
