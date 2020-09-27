@@ -32,7 +32,7 @@ function sensorupdate(s::mjSim)
         dim = m.sensor_dim[n]
 
         # Print out the sensor name and current values
-        print("$(mj_id2name(m, mj.OBJ_SENSOR, n-1)): ")
+        print("$(mj_id2name(m, MJCore.mjOBJ_SENSOR, n-1)): ")
         for i=0:(dim-1)
             i > 0 && print(", ")
             print(round(d.sensordata[adr+i+1], digits = 3))
