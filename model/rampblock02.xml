@@ -11,10 +11,10 @@
     <include file="rampscene2.xml"/>
 
     <default>
-      <geom friction="0.2 0.0005 0.00001" condim="6"/>
+      <geom friction="0.5 0.0005 0.00001" condim="4" solref="0.1 1"/>
   </default>
 
-    <option solver="CG" tolerance="1e-6"/>
+    <option solver="PGS" tolerance="1e-6"/>
 
     <size nconmax="500" njmax="5000" nstack="5000000"/>
 
@@ -22,19 +22,20 @@
         <!-- x = width_box * sqrt(2), z = height of ramp = 0.02*sqrt(2) -->
         <!-- quat = "cos(π/8) sin(π/8) 0 0". This corresponds to a 45 degree
             rotation about vecotor [1, 0, 0] (i.e. x-axis) to create a 45 degree ramp-->
-        <body name="torso" pos="-0.4 0 1.0"  quat="0.9659258262890683 0 0.25881904510252074 0">
+        <!-- <body name="torso45" pos="0.03535533905932738 0 0.28284271247461906" quat="0.9238795325112867 0 0.3826834323650898 0"> -->
+        <body name="torso30" pos="-0.38 0 1.03"  quat="0.9659258262890683 0 0.25881904510252074 0">
         <!-- <body pos="0 0 0"> -->
             <freejoint/>
             <!-- <geom name="blockg" type="box" size="0.5773502691895738 0.03 1.0" material="matobj"/> -->
             <!-- <geom type="box" size=".025 .05 .025" quat="0.9238795325112867 0 0.3826834323650898 0" material="matobj"/> -->
-            <geom name="blockg" type="box" size="0.15 0.03 0.125" material="matobj" rgba="255 0 0 0.1"/>
-            <site name="blocks" type="box" size="0.15 0.03 0.125" rgba="0 255 0 .2"/>
+            <geom name="blockg" type="box" size="0.15 0.1 0.125" material="matobj" rgba="255 0 0 0.1"/>
+            <site name="blocks" type="box" size="0.15 0.1 0.125" rgba="0 255 0 .2"/>
         </body>
     </worldbody>
 
     <sensor>
         <framelinvel name="gvel" objtype="geom" objname="blockg"/>
-        <velocimeter name="lvel" site="blocks"/>
+        <!-- <velocimeter name="lvel" site="blocks"/> -->
     </sensor>
 
 </mujoco>
