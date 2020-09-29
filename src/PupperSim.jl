@@ -47,22 +47,33 @@ function loadmodel(
         modelfile = normpath(joinpath(dirname(pathof(@__MODULE__)), "../model/Pupper.xml")),
         width = 1920, height = 1080
     )
-    m = jlModel(modelfile)
-    d = jlData(m)
 
-    s = PupperSim.setup(m, d, width, height)
+    s, duration = measure_call_time(modelfile, width, height)
 
-    s.modelfile = modelfile
-    @info("Model file: $modelfile")
-
-    # Turn off shadows initially on Linux
+    # Turn off shadows if load time is longer than 1 s
     flags = MVector(s.scn[].flags)
-    flags[1] = !Sys.islinux()
+    flags[1] = duration < 1
+    shadow_flag = flags[1]
     s.scn[].flags = flags
 
     GLFW.SetWindowRefreshCallback(s.window, (w)->render(s,w))    # Called on window resize
 
+    println("Call time to render with shadow flag set to $shadow_flag: $duration")
+
     return s
+end
+
+function measure_call_time(modelfile, width, height)
+    println("tic toc")
+    start = time()
+    m = jlModel(modelfile)
+    d = jlData(m)
+    s = PupperSim.setup(m, d, width, height)
+    s.modelfile = modelfile
+    @info("Model file: $modelfile")
+    finish = time()
+    duration = finish - start
+    return s, duration
 end
 
 """
