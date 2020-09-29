@@ -70,7 +70,7 @@ end
 
 Creates a Robot controller with specified initial velocity and yaw_rate
 """
-function pupper(velocity = 0.1, yaw_rate = 0.0)
+function pupper(velocity = 0.2, yaw_rate = 0.0)
     config = Configuration()
     config.z_clearance = 0.02     # height to pick up each foot during trot
 
@@ -93,6 +93,8 @@ Run the simulation loop
 function simulate(s::mjSim = loadmodel(), robot::Union{Robot, Nothing} = pupper())
     # Assign the passed in robot to our simulator
     s.robot = robot
+    robot !== nothing && toggle_activate(robot)
+
 
     # Loop until the user closes the window
     while !GLFW.WindowShouldClose(s.window)
