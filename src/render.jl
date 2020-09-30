@@ -9,7 +9,17 @@ function render(s::PupperSim.mjSim, w::GLFW.Window)
 
     # Render
     width, height = GLFW.GetFramebufferSize(w)
-    mjr_render(mjrRect(0,0,width,height), s.scn, s.con)
+    elapsed_time = @elapsed mjr_render(mjrRect(0,0,width,height), s.scn, s.con)
+    #println(round(elapsed_time * 1000; digits=3), " ms")
+    #println(s.scn[].flags[1])  # shadows on (1) or off (0)
+    if elapsed_time > 0.02 && s.scn[].flags[1] == 1
+        # Rendering is taking 20 ms or longer
+        @info("Turning off shadows to speed up rendering")
+        flags = MVector(s.scn[].flags)
+        flags[1] = 0
+        s.scn[].flags = flags
+    end
+
     #mjui_render(s.ui1, s.uistate, s.con)
 
     # display head mounted camera image

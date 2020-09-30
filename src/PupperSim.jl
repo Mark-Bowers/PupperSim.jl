@@ -50,21 +50,23 @@ function loadmodel(
 
     s, duration = measure_call_time(modelfile, width, height)
 
+    #=
     # Turn off shadows if load time is longer than 1 s
     flags = MVector(s.scn[].flags)
     flags[1] = duration < 1
     shadow_flag = flags[1]
     s.scn[].flags = flags
+    =#
 
     GLFW.SetWindowRefreshCallback(s.window, (w)->render(s,w))    # Called on window resize
 
-    println("Call time to render with shadow flag set to $shadow_flag: $duration")
+    #println("Call time to render with shadow flag set to $shadow_flag: $duration")
 
     return s
 end
 
 function measure_call_time(modelfile, width, height)
-    println("tic toc")
+    #println("tic toc")
     start = time()
     m = jlModel(modelfile)
     d = jlData(m)
