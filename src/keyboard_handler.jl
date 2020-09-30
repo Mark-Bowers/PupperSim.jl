@@ -253,7 +253,7 @@ function keyboard_visualization_keys(s::mjSim, key::GLFW.Key, mods::Int32)
     # toggle rendering flag
     # NRNDFLAG: 9,  RNDSTRING: ["Shadow" "1" "S"; "Wireframe" "0" "W"; "Reflection" "1" "R"; "Additive" "0" "L"; "Skybox" "1" "K"; "Fog" "0" "G"; "Haze" "1" "/"; "Segment" "0" ","; "Id Color" "0" "."], NGROUP: 6
     for i=1:MJCore.mjNRNDFLAG
-        if Int(key) == MJCore.mjRNDSTRING[3, i][1]
+        if Int(key) == Int(MJCore.mjRNDSTRING[3, i][1])
             flags = MVector(s.scn[].flags)
             flags[i] = flags[i] == 0 ? 1 : 0
             s.scn[].flags = flags
