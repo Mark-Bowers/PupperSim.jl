@@ -16,6 +16,7 @@ StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 VideoIO = "d6d074c3-1acf-5d4c-9a43-ef38773959a2"
 
 [compat]
+BangBang = "0.3"
 CImGui = "1.75"
 ColorTypes = "0.10"
 FixedPointNumbers = "0.8"
