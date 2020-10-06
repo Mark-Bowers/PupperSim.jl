@@ -38,18 +38,27 @@ function axes_map(joystick)
 end
 
 
-function gamepad(joystick)
+function gamepad(s, joystick)
     present = GLFW.JoystickPresent(joystick)
     if present
         axes = GLFW.GetJoystickAxes(joystick)
         axes_map(joystick)
         buttons = GLFW.GetJoystickButtons(joystick)
+        robotcmd = NO_COMMAND
         for i = 1:19
             if buttons[i] == 1
                 println("Pressing button ", button_map[i])
+                if i in keys(button_controller_map)
+                    robotcmd = button_controller_map[i]
+                else
+                    println("Button has no controller function")
+                end
             end
         end
         # sleep(1)
+        cmd = repr(robotcmd)
+        println("Executing Robot Command: $cmd")
+        execute_robotcmd(s, robotcmd)
     end
 end
 

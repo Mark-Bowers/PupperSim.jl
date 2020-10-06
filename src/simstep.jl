@@ -10,7 +10,7 @@ function simstep(s::mjSim)
     if s.robot !== nothing
         # Execute next step in command script
         step_script(s::mjSim, s.robot)
-        gamepad(GLFW.JOYSTICK_1)
+        gamepad(s, GLFW.JOYSTICK_1)
         # Step the controller forward by dt
         run!(s.robot)
 
