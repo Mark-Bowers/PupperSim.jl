@@ -9,12 +9,12 @@ global button_controller_map = Dict([(4, CYCLE_HOP), (7, TOGGLE_ACTIVATION),
                                      (17, ROLL_RIGHT), (18, DECREASE_HEIGHT),
                                      (19, ROLL_RIGHT)])
 
-function axes_map(joystick)
-    axes = GLFW.GetJoystickAxes(joystick)
-    return axes[1:4]
-end
+# function axes_map(joystick)
+#     axes = GLFW.GetJoystickAxes(joystick)
+#     return axes[1:4]
+# end
 
-function axes_map2(joystick)
+function axes_map(joystick)
     axes = GLFW.GetJoystickAxes(joystick)
     if axes[1] < -0.5
         println("Left analong stick steering left")
@@ -45,12 +45,12 @@ function axes_map2(joystick)
 end
 
 
-function gamepad(s, joystick)
-    present = GLFW.JoystickPresent(joystick)
+function gamepad(s::mjSim, joy::GLFW.Joystick)
+    present = GLFW.JoystickPresent(joy)
     if present
-        axes_weights = axes_map(joystick)
-        execute_axes_robotcmd(s, axes_weights)
-        buttons = GLFW.GetJoystickButtons(joystick)
+        axes_weights = axes_map(joy)
+        execute_axes_robotcmd(s, joy)
+        buttons = GLFW.GetJoystickButtons(joy)
         robotcmd = NO_COMMAND
         for i = 1:19
             if buttons[i] == 1

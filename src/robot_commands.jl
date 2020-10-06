@@ -24,24 +24,37 @@
     TURN_RIGHT          # Turn right while trotting in place
 end
 
-function execute_axes_robotcmd(s::mjSim, axes_weights::Array)
+function execute_axes_robotcmd(s::mjSim, joy::GLFW.Joystick)
     c = s.robot.command # shorthand
     conf = s.robot.controller.config
-
 
     conf.max_yaw_rate
     conf.max_pitch
 
-    x_velocity_weight = axes_weights[1]
-    y_velocity_weight = axes_weights[2]
-    yaw_rate_weight = axes_weights[3]
-    # For some reason, pushing analog stick up makes value go more neg
-    # This is counter-intuitive
-    pitch_weight = -1*axes_weights[4]
+    joystickname = GLFW.GetJoystickName(joy)
+    axes = GLFW.GetJoystickAxes(joy)
 
-    # TODO: Clarify if turn left/right means adjust yaw or call these commands
-    # if axes_weights[3] < -0.5               turn_left(s.robot)
-    # elseif axes_weights[3] > 0.5            turn_right(s.robot)
+    if occursin("Xbox", joystickname)
+        println("Using $joystickname")
+
+        x_velocity_weight = axes[1]
+        y_velocity_weight = axes[2]
+        yaw_rate_weight = axes[3]
+        # For some reason, pushing analog stick up makes value go more neg
+        # This is counter-intuitive
+        pitch_weight = -1*axes[4]
+
+        # TODO: Clarify if turn left/right means adjust yaw or call these commands
+        # if axes_weights[3] < -0.5               turn_left(s.robot)
+        # elseif axes_weights[3] > 0.5            turn_right(s.robot)
+
+    elseif joystickname == "Wireless controller"
+        # look up weights for ps4
+        x_velocity_weight = axes_weights[1]
+        y_velocity_weight = -1*axes_weights[2]
+        yaw_rate_weight = axes_weights[3]
+        pitch_weight = -1*axes[6]
+    end
 
     c.horizontal_velocity[1] = x_velocity_weight * conf.max_x_velocity
     c.horizontal_velocity[2] = y_velocity_weight * conf.max_y_velocity
