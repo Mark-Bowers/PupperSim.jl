@@ -24,6 +24,38 @@
     TURN_RIGHT          # Turn right while trotting in place
 end
 
+function execute_axes_robotcmd(s::mjSim, axes_weights::Array)
+    c = s.robot.command # shorthand
+    conf = s.robot.controller.config
+
+
+    conf.max_yaw_rate
+    conf.max_pitch
+
+    x_velocity_weight = axes_weights[1]
+    y_velocity_weight = axes_weights[2]
+    yaw_rate_weight = axes_weights[3]
+    # For some reason, pushing analog stick up makes value go more neg
+    # This is counter-intuitive
+    pitch_weight = -1*axes_weights[4]
+
+    # TODO: Clarify if turn left/right means adjust yaw or call these commands
+    # if axes_weights[3] < -0.5               turn_left(s.robot)
+    # elseif axes_weights[3] > 0.5            turn_right(s.robot)
+
+    c.horizontal_velocity[1] = x_velocity_weight * conf.max_x_velocity
+    c.horizontal_velocity[2] = y_velocity_weight * conf.max_y_velocity
+
+    # TODO: Ask what max_stance_yaw is
+    if c.yaw_rate < conf.max_stance_yaw
+        c.yaw_rate = yaw_rate_weight *conf.max_yaw_rate
+    end
+
+    if c.pitch < conf.max_pitch
+        c.pitch += pitch_weight * conf.max_pitch_rate
+    end
+end
+
 function execute_robotcmd(s::mjSim, robotcmd::RobotCmd)
     c = s.robot.command # shorthand
 

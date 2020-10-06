@@ -4,10 +4,17 @@ global button_map = Dict([(1, "A"), (2, "B"), (4, "X"), (5, "Y"), (7, "LB"), (8,
                           (12, "Option"), (16, "DUp"), (17, "DRight"), (18, "DDown"),
                           (19, "DLeft")])
 
-global button_controller_map = Dict([(7, TOGGLE_ACTIVATION), (8, TOGGLE_TROT), (16, INCREASE_HEIGHT),
-                              (17, ROLL_RIGHT), (18, DECREASE_HEIGHT), (19, ROLL_RIGHT)])
+global button_controller_map = Dict([(4, CYCLE_HOP), (7, TOGGLE_ACTIVATION),
+                                     (8, TOGGLE_TROT), (16, INCREASE_HEIGHT),
+                                     (17, ROLL_RIGHT), (18, DECREASE_HEIGHT),
+                                     (19, ROLL_RIGHT)])
 
 function axes_map(joystick)
+    axes = GLFW.GetJoystickAxes(joystick)
+    return axes[1:4]
+end
+
+function axes_map2(joystick)
     axes = GLFW.GetJoystickAxes(joystick)
     if axes[1] < -0.5
         println("Left analong stick steering left")
@@ -41,8 +48,8 @@ end
 function gamepad(s, joystick)
     present = GLFW.JoystickPresent(joystick)
     if present
-        axes = GLFW.GetJoystickAxes(joystick)
-        axes_map(joystick)
+        axes_weights = axes_map(joystick)
+        execute_axes_robotcmd(s, axes_weights)
         buttons = GLFW.GetJoystickButtons(joystick)
         robotcmd = NO_COMMAND
         for i = 1:19
