@@ -48,7 +48,6 @@ end
 function gamepad(s::mjSim, joy::GLFW.Joystick)
     present = GLFW.JoystickPresent(joy)
     if present
-        axes_weights = axes_map(joy)
         execute_axes_robotcmd(s, joy)
         buttons = GLFW.GetJoystickButtons(joy)
         robotcmd = NO_COMMAND
@@ -64,7 +63,9 @@ function gamepad(s::mjSim, joy::GLFW.Joystick)
         end
         # sleep(1)
         cmd = repr(robotcmd)
-        println("Executing Robot Command: $cmd")
+        if !(robotcmd == NO_COMMAND)
+            println("Executing Robot Command: $cmd")
+        end
         execute_robotcmd(s, robotcmd)
     end
 end

@@ -33,9 +33,9 @@ function execute_axes_robotcmd(s::mjSim, joy::GLFW.Joystick)
 
     joystickname = GLFW.GetJoystickName(joy)
     axes = GLFW.GetJoystickAxes(joy)
-
+    # println("Current axes $axes")
     if occursin("Xbox", joystickname)
-        println("Using $joystickname")
+        # println("Using $joystickname")
 
         x_velocity_weight = axes[1]
         y_velocity_weight = axes[2]
