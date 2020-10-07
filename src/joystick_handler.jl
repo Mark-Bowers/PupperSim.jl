@@ -1,13 +1,23 @@
 include("robot_commands.jl")
 
-global button_map = Dict([(1, "A"), (2, "B"), (4, "X"), (5, "Y"), (7, "LB"), (8, "RB"),
+global xbox_button_map = Dict([(1, "A"), (2, "B"), (4, "X"), (5, "Y"), (7, "LB"), (8, "RB"),
                           (12, "Option"), (16, "DUp"), (17, "DRight"), (18, "DDown"),
                           (19, "DLeft")])
 
-global button_controller_map = Dict([(4, CYCLE_HOP), (7, TOGGLE_ACTIVATION),
-                                     (8, TOGGLE_TROT), (16, INCREASE_HEIGHT),
-                                     (17, ROLL_RIGHT), (18, DECREASE_HEIGHT),
-                                     (19, ROLL_RIGHT)])
+  global ps4_button_map = Dict([(1, "Square"), (2, "X"), (3, "Circle"), (4, "Triangle"),
+                                (5, "Bumper L1"), (6, "Bumper R1"), (8, "Share"),
+                                (9, "Option"), (14, "Home"), (15, "DUp"), (16, "DRight"),
+                                (17, "DDown"), (18, "DLeft")])
+
+global xbox_button_controller_map = Dict([(1, CYCLE_HOP), (7, TOGGLE_ACTIVATION),
+                                         (8, TOGGLE_TROT), (16, INCREASE_HEIGHT),
+                                         (17, ROLL_RIGHT), (18, DECREASE_HEIGHT),
+                                         (19, ROLL_LEFT)])
+
+global ps4_button_controller_map = Dict([(2, CYCLE_HOP), (5, TOGGLE_ACTIVATION),
+                                          (6, TOGGLE_TROT), (15, INCREASE_HEIGHT),
+                                          (16, ROLL_RIGHT), (17, DECREASE_HEIGHT),
+                                          (18, ROLL_LEFT)])
 
 # function axes_map(joystick)
 #     axes = GLFW.GetJoystickAxes(joystick)
@@ -51,11 +61,22 @@ function gamepad(s::mjSim, joy::GLFW.Joystick)
         execute_axes_robotcmd(s, joy)
         buttons = GLFW.GetJoystickButtons(joy)
         robotcmd = NO_COMMAND
-        for i = 1:19
-            if buttons[i] == 1
-                println("Pressing button ", button_map[i])
-                if i in keys(button_controller_map)
-                    robotcmd = button_controller_map[i]
+        joystickname = GLFW.GetJoystickName(joy)
+        if occursin("Xbox", joystickname)
+        # For now we only know about two possible
+        # names for controllers. Wireless Controller
+        # IS PS4
+            button_map = xbox_button_map
+            button_controller_map = xbox_button_controller_map
+        elseif joystickname == "Wireless Controller"
+            button_map = ps4_button_map
+            button_controller_map = ps4_button_controller_map
+        end
+        for (key, value) in button_map
+            if buttons[key] == 1
+                println("Pressing button ", button_map[key])
+                if key in keys(button_controller_map)
+                    robotcmd = button_controller_map[key]
                 else
                     println("Button has no controller function")
                 end
