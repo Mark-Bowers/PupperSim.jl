@@ -48,7 +48,7 @@ function execute_axes_robotcmd(s::mjSim, joy::GLFW.Joystick)
         # if axes_weights[3] < -0.5               turn_left(s.robot)
         # elseif axes_weights[3] > 0.5            turn_right(s.robot)
 
-    elseif joystickname == "Wireless controller"
+    elseif joystickname == "Wireless Controller"
         # look up weights for ps4
         x_velocity_weight = axes_weights[1]
         y_velocity_weight = -1*axes_weights[2]
