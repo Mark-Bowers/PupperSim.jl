@@ -2,8 +2,6 @@ const GLFW_LOCK_KEY_MODS = 0x00033004
 const GLFW_MOD_CAPS_LOCK = 0x0010   # Caps Lock key is enabled
 const GLFW_MOD_NUM_LOCK  = 0x0020   # Num Lock key is enabled
 
-include("robot_commands.jl")
-
 # keypad helper function
 function keypadcmd(key::GLFW.Key, mods::Int32)::RobotCmd
     # Keypad keys have a different meaning if ctrl, alt, or both are pressed

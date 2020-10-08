@@ -1,4 +1,3 @@
-include("robot_commands.jl")
 
 global xbox_button_map = Dict([(1, "A"), (2, "B"), (4, "X"), (5, "Y"), (7, "LB"), (8, "RB"),
                           (12, "Option"), (16, "DUp"), (17, "DRight"), (18, "DDown"),

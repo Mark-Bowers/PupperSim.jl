@@ -1,5 +1,4 @@
 include("step_script.jl")
-include("joystick_handler.jl")
 
 # Copied this directly from QuadrupedController.jl
 # TODO: Is rhere a way to import directly from QuadrupedController?

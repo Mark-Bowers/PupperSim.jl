@@ -4,9 +4,12 @@ const maxgeom = 5000                    # preallocated geom array in mjvScene
 
 include("sensor.jl")
 
-# Callbacks
+include("robot_commands.jl")
+
+# Input handlers
 include("keyboard_handler.jl")
 include("mouse_handler.jl")
+include("joystick_handler.jl")
 
 # Utility functions for working with the model's cameras
 function list_named_cameras(m::jlModel)
