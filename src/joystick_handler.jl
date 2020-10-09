@@ -96,17 +96,25 @@ function execute_axes_robotcmd(s::mjSim, joy::GLFW.Joystick)
 
 end
 
-prev_buttons = zeros(UInt8, 18)
+function get_prev_buttons(joy::GLFW.Joystick, joystickname::string)
+    if occursin("Xbox", joystickname)
+        prev_buttons = zeros(UInt8, 19)
+    elseif joystickname == "Wireless Controller"
+        prev_buttons = zeros(UInt8, 18)
+    end
+end
+
 
 function gamepad(s::mjSim, joy::GLFW.Joystick)
     present = GLFW.JoystickPresent(joy)
     if present
         execute_axes_robotcmd(s, joy)
+        joystickname = GLFW.GetJoystickName(joy)
+        prev_buttons = get_prev_buttons(joy, joystickname)
         buttons = GLFW.GetJoystickButtons(joy)
         toggle = buttons .& (prev_buttons .⊻ buttons)
         global prev_buttons = deepcopy(buttons)
         robotcmd = NO_COMMAND
-        joystickname = GLFW.GetJoystickName(joy)
         if occursin("Xbox", joystickname)
         # For now we only know about two possible names
         # for controllers. Wireless Controller is DS4
