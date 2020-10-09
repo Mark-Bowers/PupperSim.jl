@@ -1,9 +1,5 @@
 include("step_script.jl")
 
-# Copied this directly from QuadrupedController.jl
-# TODO: Is rhere a way to import directly from QuadrupedController?
-# behavior_state_string(state) = string(state.behavior_state)[25:end-4]
-
 # Simulate physics for 1/240 seconds (the default timestep)
 function simstep(s::mjSim)
     # Create local simulator d (data), and m (model) variables
@@ -11,11 +7,12 @@ function simstep(s::mjSim)
     m = s.m
 
     if s.robot !== nothing
+        # Check for gamepad input
+        gamepad(s, GLFW.JOYSTICK_1)
+
         # Execute next step in command script
         step_script(s::mjSim, s.robot)
-        # if occursin("TROT", behavior_state_string(s.robot.state))
-        gamepad(s, GLFW.JOYSTICK_1)
-        # end
+
         # Step the controller forward by dt
         run!(s.robot)
 
