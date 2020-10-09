@@ -74,6 +74,7 @@ function execute_axes_robotcmd(s::mjSim, joy::GLFW.Joystick)
 
     # max_pitch = config.max_pitch
     pitch = axes[ry] * -config.max_pitch_rate
+    println("pitch: $pitch")
     deadbanded_pitch = deadband(
         pitch, config.pitch_deadband
     )
@@ -83,9 +84,11 @@ function execute_axes_robotcmd(s::mjSim, joy::GLFW.Joystick)
         config.max_pitch_rate,
         config.pitch_time_constant,
     )
+    println("pitch_rate: $pitch_rate")
     message_dt = 1.0 / s.refreshrate
     command.pitch = state.pitch + message_dt * pitch_rate
-
+    c_pitch = command.pitch
+    println("Setting command.pitch to $c_pitch")
     #=
     height_movement = msg["dpady"]
     command.height = state.height - message_dt * self.config.z_speed * height_movement
@@ -96,7 +99,7 @@ function execute_axes_robotcmd(s::mjSim, joy::GLFW.Joystick)
 
 end
 
-function get_prev_buttons(joy::GLFW.Joystick, joystickname::string)
+function get_prev_buttons(joy::GLFW.Joystick, joystickname::String)
     if occursin("Xbox", joystickname)
         prev_buttons = zeros(UInt8, 19)
     elseif joystickname == "Wireless Controller"
