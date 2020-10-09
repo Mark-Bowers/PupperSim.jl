@@ -18,47 +18,69 @@ global ps4_button_controller_map = Dict([(2, CYCLE_HOP), (5, TOGGLE_ACTIVATION),
                                           (16, ROLL_RIGHT), (17, DECREASE_HEIGHT),
                                           (18, ROLL_LEFT)])
 
-# function axes_map(joystick)
-#     axes = GLFW.GetJoystickAxes(joystick)
-#     return axes[1:4]
-# end
+function execute_axes_robotcmd(s::mjSim, joy::GLFW.Joystick)
+    c = s.robot.command # shorthand
+    conf = s.robot.controller.config
 
-function axes_map(joystick)
-    axes = GLFW.GetJoystickAxes(joystick)
-    if axes[1] < -0.5
-        println("Left analong stick steering left")
-    elseif axes[1] > 0.5
-        println("Left analog stick steering right")
+    # max_yaw_rate = conf.max_yaw_rate
+    max_pitch = conf.max_pitch
+
+    joystickname = GLFW.GetJoystickName(joy)
+    axes = map((x) -> round(x; digits=1), GLFW.GetJoystickAxes(joy))
+    # axes = GLFW.GetJoystickAxes(joy)
+    # println("Current axes $axes")
+    if occursin("Xbox", joystickname)
+        # println("Using $joystickname")
+
+        y_velocity_weight = -1*axes[1]
+        x_velocity_weight = -1*axes[2]
+        yaw_rate_weight = -1*axes[3]
+        # For some reason, pushing analog stick up makes value go more neg
+        # This is counter-intuitive
+        pitch_weight = -1*axes[4]
+
+        # TODO: Clarify if turn left/right means adjust yaw or call these commands
+        # if axes_weights[3] < -0.5               turn_left(s.robot)
+        # elseif axes_weights[3] > 0.5            turn_right(s.robot)
+
+    elseif joystickname == "Wireless Controller"
+        # look up weights for ps4
+        x_velocity_weight = axes[1]
+        y_velocity_weight = -1*axes[2]
+        yaw_rate_weight = axes[3]
+        pitch_weight = -1*axes[6]
     end
-    if axes[2] < -0.5
-        println("Left analog stick steering up")
-    elseif axes[2] > 0.5
-        println("Left analog stick steering down")
-    end
-    if axes[3] < -0.5
-        println("Right analog stick steering left")
-    elseif axes[3] > 0.5
-        println("Right analog stick steering right")
-    end
-    if axes[4] < -0.5
-        println("Right analog stick steering up")
-    elseif axes[4] > 0.5
-        println("Right analog stick steering down")
-    end
-    if axes[5] == 1.0
-        println("Pressing RT")
-    end
-    if axes[6] == 1.0
-        println("Pressing LT")
-    end
+
+    c.horizontal_velocity[1] = x_velocity_weight * conf.max_x_velocity
+    c.horizontal_velocity[2] = y_velocity_weight * conf.max_y_velocity
+
+    # TODO: Ask what max_stance_yaw is
+    # if c.yaw_rate < conf.max_stance_yaw
+    c.yaw_rate = yaw_rate_weight *conf.max_yaw_rate
+    # end
+
+    c.pitch += pitch_weight * conf.max_pitch_rate
+
+    # println("Max pitch $max_pitch")
+    # if c.pitch < max_pitch
+    #     oldpitch = c.pitch
+    #     # newpitch = c.pitch + pitch_weight * conf.max_pitch_rate
+    #     # println("Adjusting pitch from $oldpitch to $newpitch")
+    #     # c.pitch = newpitch
+    #     println("Pitch weight $pitch_weight")
+    #     println("Pitch $oldpitch")
+    # end
 end
 
+prev_buttons = zeros(UInt8, 18)
 
 function gamepad(s::mjSim, joy::GLFW.Joystick)
     present = GLFW.JoystickPresent(joy)
     if present
         execute_axes_robotcmd(s, joy)
         buttons = GLFW.GetJoystickButtons(joy)
+        toggle = buttons .& (prev_buttons .⊻ buttons)
+        global prev_buttons = deepcopy(buttons)
         robotcmd = NO_COMMAND
         joystickname = GLFW.GetJoystickName(joy)
         if occursin("Xbox", joystickname)
@@ -72,8 +94,8 @@ function gamepad(s::mjSim, joy::GLFW.Joystick)
             button_controller_map = ps4_button_controller_map
         end
         for (key, value) in button_map
-            if buttons[key] == 1
-                println("Pressing button ", button_map[key])
+            if toggle[key] == 1
+                println("Pressed button ", button_map[key])
                 if key in keys(button_controller_map)
                     robotcmd = button_controller_map[key]
                 else
@@ -89,54 +111,3 @@ function gamepad(s::mjSim, joy::GLFW.Joystick)
         execute_robotcmd(s, robotcmd)
     end
 end
-
-# function gamepad2(s, joystick)
-#     while !GLFW.WindowShouldClose(s.window)
-#         present = GLFW.JoystickPresent(joystick)
-#         if present
-#             axes = GLFW.GetJoystickAxes(joystick)
-#             axes_map(joystick)
-#             buttons = GLFW.GetJoystickButtons(joystick)
-#             for i = 1:19
-#                 if buttons[i] == 1
-#                     println("Pressing button ", button_map[i])
-#                 end
-#             end
-#             # sleep(1)
-#         end
-#     end
-# end
-
-# function lookup_button(joystick_buttons, joystick)
-#     scanning = true
-#     while scanning
-#         for i = 1:19
-#             if GLFW.GetJoystickButtons(joystick)[i] == 1
-#                 println("Pressing button ", joystick_buttons[i])
-#                 scanning = false
-#             end
-#         end
-#     end
-# end
-
-# function joystickcmd(joy)
-#     for i = 1:19
-#         if GLFW.GetJoystickButtons(joy)[i] == 1
-#             print("Pressing button ", button_map[i])
-#             return button_controller_map[i]
-#         end
-#         return NO_COMMAND
-#     end
-# end
-
-# in_range(key::Int, low::Int, high::Int) = key in low:high
-# is_joystick_robotcmd(button_position::Int) = in_range(button_position, 1, 19)
-#
-# function joystick(s::mjSim, window::GLFW.Window, joy::GLFW.joystick)
-#     println(GLFW.JoystickPresent(joy))
-#     robotcmd = joystickcmd(joy)
-#     # if is_joystick_robotcmd(button_position)
-#     # robotcmd = (button_position)
-#     # else
-#         # robotcmd = NO_COMMAND
-# end
