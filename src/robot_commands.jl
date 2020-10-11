@@ -26,25 +26,14 @@ end
 
 function execute_robotcmd(s::mjSim, robotcmd::RobotCmd)
     c = s.robot.command # shorthand
-    conf = s.robot.controller.config
-
-    # TODO: Ask about realistic value of message_rate
-    message_rate = 1.0
-    message_dt = 1.0 / message_rate
 
     # Velocity PgUp / PgDn
     if robotcmd == INCREASE_VELOCITY        c.horizontal_velocity[1] += 0.01
     elseif robotcmd == DECREASE_VELOCITY    c.horizontal_velocity[1] -= 0.01
 
     # Height Home / End
-    elseif robotcmd == INCREASE_HEIGHT      height_movement = 1.0
-    elseif robotcmd == DECREASE_HEIGHT      height_movement = -1.0
-
-    # TODO: Are these reversed?!?
-    # elseif robotcmd == INCREASE_HEIGHT      c.height -= 0.005
-    # elseif robotcmd == DECREASE_HEIGHT      c.height += 0.005
-
-    c.height = s.robot.state.height - message_dt * conf.z_speed * height_movement
+    elseif robotcmd == INCREASE_HEIGHT      c.height -= 0.005
+    elseif robotcmd == DECREASE_HEIGHT      c.height += 0.005
 
     # Yaw left / right arrow
     elseif robotcmd == INCREASE_YAW         c.yaw_rate += 0.02
@@ -54,14 +43,9 @@ function execute_robotcmd(s::mjSim, robotcmd::RobotCmd)
     elseif robotcmd == PITCH_NOSE_UP        c.pitch += 0.03
     elseif robotcmd == PITCH_NOSE_DOWN      c.pitch -= 0.03
 
-    elseif robotcmd == ROLL_LEFT            roll_movement = -1.0
-    elseif robotcmd == ROLL_RIGHT           roll_movement = 1.0
-
-    c.roll = s.robot.state.roll + message_dt * conf.roll_speed * roll_movement
-
     # Roll left (/) / right (+)
-    # elseif robotcmd == ROLL_LEFT            c.roll += 0.02
-    # elseif robotcmd == ROLL_RIGHT           c.roll -= 0.02
+    elseif robotcmd == ROLL_LEFT            c.roll += 0.02
+    elseif robotcmd == ROLL_RIGHT           c.roll -= 0.02
 
     # Toggle activate (-) / trot (+) / hop (Enter)
     elseif robotcmd == TOGGLE_ACTIVATION    toggle_activate(s.robot)

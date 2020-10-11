@@ -1,23 +1,32 @@
+# GLFW Gamepad functions
+# https://www.glfw.org/docs/latest/input_guide.html#gamepad
 
-global xbox_button_map = Dict([(1, "A"), (2, "B"), (4, "X"), (5, "Y"), (7, "LB"), (8, "RB"),
-                            (12, "Option"), (16, "DUp"), (17, "DRight"), (18, "DDown"),
-                            (19, "DLeft")])
+const AXIS_LEFT_X       = 1
+const AXIS_LEFT_Y       = 2
+const AXIS_RIGHT_X      = 3
+const AXIS_RIGHT_Y      = 4
 
-global ps4_button_map = Dict([(1, "Square"), (2, "X"), (3, "Circle"), (4, "Triangle"),
-                            (5, "Bumper L1"), (6, "Bumper R1"), (8, "Share"),
-                            (9, "Option"), (14, "Home"), (15, "DUp"), (16, "DRight"),
-                            (17, "DDown"), (18, "DLeft")])
+const BUTTON_DPAD_UP    = 12
+const BUTTON_DPAD_RIGHT = 13
+const BUTTON_DPAD_DOWN  = 14
+const BUTTON_DPAD_LEFT  = 15
 
-global xbox_button_controller_map = Dict([(1, CYCLE_HOP), (7, TOGGLE_ACTIVATION),
-                                        (8, TOGGLE_TROT), (16, INCREASE_HEIGHT),
-                                        (17, ROLL_RIGHT), (18, DECREASE_HEIGHT),
-                                        (19, ROLL_LEFT)])
+struct GLFWgamepadstate
+	buttons::SVector{15, UInt8}  # unsigned char buttons[15];    // GLFW_PRESS or GLFW_RELEASE
+	axes::SVector{6, Float32}    # float axes[6];                // -1.0 to 1.0 inclusive
+end
 
-global ps4_button_controller_map = Dict([(2, CYCLE_HOP), (5, TOGGLE_ACTIVATION),
-                                        (6, TOGGLE_TROT), (15, INCREASE_HEIGHT),
-                                        (16, ROLL_RIGHT), (17, DECREASE_HEIGHT),
-                                        (18, ROLL_LEFT)])
+#= GetGamepadState
+This function retrieves the state of the specified joystick remapped to an Xbox-like gamepad.
+If the specified joystick is not present or does not have a gamepad mapping this function will return GLFW_FALSE but will not generate an error. Call glfwJoystickPresent to check whether it is present regardless of whether it has a mapping.
+Not all devices have all the buttons or axes provided by GLFWgamepadstate. Unavailable buttons and axes will always report GLFW_RELEASE and 0.0 respectively.
+Possible errors include GLFW_NOT_INITIALIZED and GLFW_INVALID_ENUM.
+Added in version 3.3 (MWB !!! How can we make sure the user is using GLFW 3.3?)
+=#
 
+GetGamepadState(joy::GLFW.Joystick, state) = Bool(ccall((:glfwGetGamepadState, GLFW.libglfw), Cint, (Cint, Ref{GLFWgamepadstate}), joy, state))
+
+# Functions ported over from JoystickInterface.py
 function deadband(value, band_radius)
     return max(value - band_radius, 0) + min(value + band_radius, 0)
 end
@@ -27,121 +36,76 @@ function clipped_first_order_filter(input, target, max_rate, tau)
     return clamp(rate, -max_rate, max_rate)
 end
 
-function execute_axes_robotcmd(s::mjSim, joy::GLFW.Joystick)
-    # axes = GLFW.GetJoystickAxes(joy)
-    axes = map((x) -> round(x; digits=1), GLFW.GetJoystickAxes(joy))
-    # println("Current axes $axes")
-
-    lx=1; ly=2; rx=3; rt=5
-
-    joystickname = GLFW.GetJoystickName(joy)
-    # println("Using $joystickname")
-    if occursin("Xbox", joystickname)
-        ry=4; lt=6
-    elseif joystickname == "Wireless Controller"
-        lt=4; ry=6
-    end
-
-    # shorthand
+function handle_scalar_settings(s::mjSim, buttons, axes)
     config  = s.robot.controller.config
     state   = s.robot.state
     command = s.robot.command
 
-    # Not sure why these are reversed
-    command.horizontal_velocity[1] = axes[ly] * -config.max_x_velocity
-    command.horizontal_velocity[2] = axes[lx] * -config.max_y_velocity
-    # but they are also reversed in JoystickInterface.py
-    # x_vel = msg["ly"] * self.config.max_x_velocity
-    # y_vel = msg["lx"] * -self.config.max_y_velocity
-    # command.horizontal_velocity = np.array([x_vel, y_vel])
+    # Velocity
+    command.horizontal_velocity[1] = axes[AXIS_LEFT_Y] * -config.max_x_velocity
+    command.horizontal_velocity[2] = axes[AXIS_LEFT_X] * -config.max_y_velocity
 
-    # command.yaw_rate = msg["rx"] * -self.config.max_yaw_rate
-    command.yaw_rate = axes[rx] * -config.max_yaw_rate
+    # Yaw
+    command.yaw_rate = axes[AXIS_RIGHT_X] * -config.max_yaw_rate
 
-    #=
-    pitch = msg["ry"] * self.config.max_pitch
-    deadbanded_pitch = deadband(
-        pitch, self.config.pitch_deadband
-    )
-    pitch_rate = clipped_first_order_filter(
-        state.pitch,
-        deadbanded_pitch,
-        self.config.max_pitch_rate,
-        self.config.pitch_time_constant,
-    )
-    command.pitch = state.pitch + message_dt * pitch_rate
-    =#
-
-    # max_pitch = config.max_pitch
-    pitch = axes[ry] * -config.max_pitch_rate
-    println("pitch: $pitch")
-    deadbanded_pitch = deadband(
-        pitch, config.pitch_deadband
-    )
+    # Pitch
+    pitch = axes[AXIS_RIGHT_Y] * -config.max_pitch
+    #println("pitch: $pitch")
+    deadbanded_pitch = deadband(pitch, config.pitch_deadband)
     pitch_rate = clipped_first_order_filter(
         state.pitch,
         deadbanded_pitch,
         config.max_pitch_rate,
-        config.pitch_time_constant,
+        config.pitch_time_constant
     )
-    println("pitch_rate: $pitch_rate")
+    #println("pitch_rate: $pitch_rate")
     message_dt = 1.0 / s.refreshrate
     command.pitch = state.pitch + message_dt * pitch_rate
-    c_pitch = command.pitch
-    println("Setting command.pitch to $c_pitch")
-    #=
-    height_movement = msg["dpady"]
-    command.height = state.height - message_dt * self.config.z_speed * height_movement
+    #println("Setting command.pitch to $(command.pitch)")
 
-    roll_movement = - msg["dpadx"]
-    command.roll = state.roll + message_dt * self.config.roll_speed * roll_movement
-    =#
+    # Roll
+    dpadx = Int(buttons[BUTTON_DPAD_RIGHT]) - Int(buttons[BUTTON_DPAD_LEFT])
+    if dpadx != 0
+        roll = state.roll + message_dt * config.roll_speed * dpadx
+        command.roll = clamp(roll, -1.0, 1.0)
+    end
 
-end
-
-function get_prev_buttons(joy::GLFW.Joystick, joystickname::String)
-    if occursin("Xbox", joystickname)
-        prev_buttons = zeros(UInt8, 19)
-    elseif joystickname == "Wireless Controller"
-        prev_buttons = zeros(UInt8, 18)
+    # Height
+    dpady = Int(buttons[BUTTON_DPAD_UP]) - Int(buttons[BUTTON_DPAD_DOWN])
+    if dpady != 0
+        height = state.height - message_dt * config.z_speed * dpady
+        command.height = clamp(height, -0.25, -0.025)
     end
 end
 
+prev_buttons = @SVector fill(0x00, 15)
+button_commands = SVector{15, RobotCmd}(
+    CYCLE_HOP,          # GLFW_GAMEPAD_BUTTON_CROSS
+    NO_COMMAND, NO_COMMAND, NO_COMMAND,
+    TOGGLE_ACTIVATION,  # GLFW_GAMEPAD_BUTTON_LEFT_BUMPER
+    TOGGLE_TROT,        # GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER
+    NO_COMMAND, NO_COMMAND, NO_COMMAND, NO_COMMAND,
+    NO_COMMAND, NO_COMMAND, NO_COMMAND, NO_COMMAND, NO_COMMAND)
+
+function handle_behavior_state_change(s::mjSim, buttons)
+    triggered = buttons .& (prev_buttons .⊻ buttons)
+    global prev_buttons = deepcopy(buttons)
+
+    for (doit, robotcmd) in zip(triggered, button_commands)
+        if Bool(doit)
+            # println("Executing Robot Command: $(repr(robotcmd))")
+            execute_robotcmd(s, robotcmd)
+        end
+    end
+end
 
 function gamepad(s::mjSim, joy::GLFW.Joystick)
-    present = GLFW.JoystickPresent(joy)
-    if present
-        execute_axes_robotcmd(s, joy)
-        joystickname = GLFW.GetJoystickName(joy)
-        prev_buttons = get_prev_buttons(joy, joystickname)
-        buttons = GLFW.GetJoystickButtons(joy)
-        toggle = buttons .& (prev_buttons .⊻ buttons)
-        global prev_buttons = deepcopy(buttons)
-        robotcmd = NO_COMMAND
-        if occursin("Xbox", joystickname)
-        # For now we only know about two possible names
-        # for controllers. Wireless Controller is DS4
-            button_map = xbox_button_map
-            button_controller_map = xbox_button_controller_map
-        elseif joystickname == "Wireless Controller"
-            button_map = ps4_button_map
-            button_controller_map = ps4_button_controller_map
-        end
-        for (key, value) in button_map
-            if toggle[key] == 1
-                println("Pressed button ", button_map[key])
-                if key in keys(button_controller_map)
-                    robotcmd = button_controller_map[key]
-                else
-                    println("Button has no controller function")
-                end
-            end
-        end
-        # sleep(1)
-        cmd = repr(robotcmd)
-        if !(robotcmd == NO_COMMAND)
-            println("Executing Robot Command: $cmd")
-        end
-        execute_robotcmd(s, robotcmd)
+    state = Ref{GLFWgamepadstate}()
+
+    if GetGamepadState(joy, state)
+        buttons = state[].buttons
+
+        handle_behavior_state_change(s, buttons)
+        handle_scalar_settings(s, buttons, state[].axes)
     end
 end
