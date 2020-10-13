@@ -8,7 +8,11 @@ function simstep(s::mjSim)
 
     if s.robot !== nothing
         # Check for gamepad input
-        gamepad(s, GLFW.JOYSTICK_1)
+        if GLFW.JoystickPresent(GLFW.JOYSTICK_1)
+            gamepad(s, GLFW.JOYSTICK_1)
+        else
+            println("No Joystick detected")
+        end
 
         # Execute next step in command script
         step_script(s::mjSim, s.robot)

@@ -1,15 +1,85 @@
 # GLFW Gamepad functions
 # https://www.glfw.org/docs/latest/input_guide.html#gamepad
 
-const AXIS_LEFT_X       = 1
-const AXIS_LEFT_Y       = 2
-const AXIS_RIGHT_X      = 3
-const AXIS_RIGHT_Y      = 4
+function get_axes_and_buttons_map(joy::GLFW.Joystick)
+	joystickname = GLFW.GetJoystickName(joy)
+	if JoystickIsGamepad(joy)
+		# Works for Windows and likely also on Mac
+		# Works for Xbox Controller or DS4 Controller
+		global AXIS_LEFT_X       = 1
+		global AXIS_LEFT_Y       = 2
+		global AXIS_RIGHT_X      = 3
+		global AXIS_RIGHT_Y      = 4
 
-const BUTTON_DPAD_UP    = 12
-const BUTTON_DPAD_RIGHT = 13
-const BUTTON_DPAD_DOWN  = 14
-const BUTTON_DPAD_LEFT  = 15
+		global BUTTON_DPAD_UP    = 12
+		global BUTTON_DPAD_RIGHT = 13
+		global BUTTON_DPAD_DOWN  = 14
+		global BUTTON_DPAD_LEFT  = 15
+
+		global prev_buttons = @SVector fill(0x00, 15)
+		global button_commands = SVector{15, RobotCmd}(
+		    CYCLE_HOP,          # GLFW_GAMEPAD_BUTTON_CROSS
+		    NO_COMMAND, NO_COMMAND, NO_COMMAND,
+		    TOGGLE_ACTIVATION,  # GLFW_GAMEPAD_BUTTON_LEFT_BUMPER
+		    TOGGLE_TROT,        # GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER
+		    NO_COMMAND, NO_COMMAND, NO_COMMAND, NO_COMMAND,
+		    NO_COMMAND, NO_COMMAND, NO_COMMAND, NO_COMMAND, NO_COMMAND)
+
+	elseif occursin("Xbox", joystickname)
+		# Jaystick Cannot function as gamepad on linux
+		# lookup buttons and axes for Xbox controller
+		global AXIS_LEFT_X       = 1
+		global AXIS_LEFT_Y       = 2
+		global AXIS_RIGHT_X      = 3
+		global AXIS_RIGHT_Y      = 4
+
+		global BUTTON_DPAD_UP    = 16
+		global BUTTON_DPAD_RIGHT = 17
+		global BUTTON_DPAD_DOWN  = 18
+		global BUTTON_DPAD_LEFT  = 19
+
+		global prev_buttons = @SVector fill(0x00, 19)
+		global button_commands = SVector{19, RobotCmd}(
+			CYCLE_HOP,          # XBox Controller A
+			NO_COMMAND, NO_COMMAND, NO_COMMAND,
+			NO_COMMAND, NO_COMMAND,
+			TOGGLE_ACTIVATION,  # Xbox LEFT_BUMPER
+			TOGGLE_TROT,        # Xbox RIGHT_BUMPER
+			NO_COMMAND, NO_COMMAND, NO_COMMAND,
+			NO_COMMAND, NO_COMMAND, NO_COMMAND,
+			NO_COMMAND, NO_COMMAND, NO_COMMAND,
+			NO_COMMAND, NO_COMMAND)
+	elseif joystickname == "Wireless Controller"
+		# Jaystick Cannot function as gamepad on linux
+		# lookup buttons and axes for DS4 controller
+		global AXIS_LEFT_X       = 1
+		global AXIS_LEFT_Y       = 2
+		global AXIS_RIGHT_X      = 3
+		global AXIS_RIGHT_Y      = 6
+
+		global BUTTON_DPAD_UP    = 15
+		global BUTTON_DPAD_RIGHT = 16
+		global BUTTON_DPAD_DOWN  = 17
+		global BUTTON_DPAD_LEFT  = 18
+
+		global prev_buttons = @SVector fill(0x00, 18)
+		global button_commands = SVector{18, RobotCmd}(
+			NO_COMMAND,
+			CYCLE_HOP,          # DS4 Controller X
+			NO_COMMAND, NO_COMMAND,
+			TOGGLE_ACTIVATION,  # GLFW_GAMEPAD_BUTTON_LEFT_BUMPER
+			TOGGLE_TROT,        # GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER
+			NO_COMMAND, NO_COMMAND, NO_COMMAND,
+			NO_COMMAND, NO_COMMAND, NO_COMMAND,
+			NO_COMMAND, NO_COMMAND, NO_COMMAND,
+			NO_COMMAND, NO_COMMAND, NO_COMMAND)
+	end
+end
+
+global xbox_button_controller_map = Dict([(1, CYCLE_HOP), (7, TOGGLE_ACTIVATION),
+                                        (8, TOGGLE_TROT), (16, INCREASE_HEIGHT),
+                                        (17, ROLL_RIGHT), (18, DECREASE_HEIGHT),
+                                        (19, ROLL_LEFT)])
 
 struct GLFWgamepadstate
 	buttons::SVector{15, UInt8}  # unsigned char buttons[15];    // GLFW_PRESS or GLFW_RELEASE
@@ -23,6 +93,8 @@ Not all devices have all the buttons or axes provided by GLFWgamepadstate. Unava
 Possible errors include GLFW_NOT_INITIALIZED and GLFW_INVALID_ENUM.
 Added in version 3.3 (MWB !!! How can we make sure the user is using GLFW 3.3?)
 =#
+
+JoystickIsGamepad(joy::GLFW.Joystick) = Bool(ccall((:glfwJoystickIsGamepad, GLFW.libglfw), Cint, (Cint,), joy))
 
 GetGamepadState(joy::GLFW.Joystick, state) = Bool(ccall((:glfwGetGamepadState, GLFW.libglfw), Cint, (Cint, Ref{GLFWgamepadstate}), joy, state))
 
@@ -78,15 +150,6 @@ function handle_scalar_settings(s::mjSim, buttons, axes)
     end
 end
 
-prev_buttons = @SVector fill(0x00, 15)
-button_commands = SVector{15, RobotCmd}(
-    CYCLE_HOP,          # GLFW_GAMEPAD_BUTTON_CROSS
-    NO_COMMAND, NO_COMMAND, NO_COMMAND,
-    TOGGLE_ACTIVATION,  # GLFW_GAMEPAD_BUTTON_LEFT_BUMPER
-    TOGGLE_TROT,        # GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER
-    NO_COMMAND, NO_COMMAND, NO_COMMAND, NO_COMMAND,
-    NO_COMMAND, NO_COMMAND, NO_COMMAND, NO_COMMAND, NO_COMMAND)
-
 function handle_behavior_state_change(s::mjSim, buttons)
     triggered = buttons .& (prev_buttons .⊻ buttons)
     global prev_buttons = deepcopy(buttons)
@@ -100,12 +163,24 @@ function handle_behavior_state_change(s::mjSim, buttons)
 end
 
 function gamepad(s::mjSim, joy::GLFW.Joystick)
-    state = Ref{GLFWgamepadstate}()
 
-    if GetGamepadState(joy, state)
-        buttons = state[].buttons
+	get_axes_and_buttons_map(joy)
 
-        handle_behavior_state_change(s, buttons)
-        handle_scalar_settings(s, buttons, state[].axes)
-    end
+	if JoystickIsGamepad(joy)
+	    state = Ref{GLFWgamepadstate}()
+
+	    if GetGamepadState(joy, state)
+	        buttons = state[].buttons
+
+	        handle_behavior_state_change(s, buttons)
+	        handle_scalar_settings(s, buttons, state[].axes)
+	    end
+	else
+		# println("Joystick is not gamepad")
+		axes = GLFW.GetJoystickAxes(joy)
+		buttons = GLFW.GetJoystickButtons(joy)
+		# axes_buttons = vcat(axes, buttons)
+		handle_behavior_state_change(s, buttons)
+		handle_scalar_settings(s, buttons, axes)
+	end
 end
