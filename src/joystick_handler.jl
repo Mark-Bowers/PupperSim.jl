@@ -76,11 +76,6 @@ function get_axes_and_buttons_map(joy::GLFW.Joystick)
 	end
 end
 
-global xbox_button_controller_map = Dict([(1, CYCLE_HOP), (7, TOGGLE_ACTIVATION),
-                                        (8, TOGGLE_TROT), (16, INCREASE_HEIGHT),
-                                        (17, ROLL_RIGHT), (18, DECREASE_HEIGHT),
-                                        (19, ROLL_LEFT)])
-
 struct GLFWgamepadstate
 	buttons::SVector{15, UInt8}  # unsigned char buttons[15];    // GLFW_PRESS or GLFW_RELEASE
 	axes::SVector{6, Float32}    # float axes[6];                // -1.0 to 1.0 inclusive
