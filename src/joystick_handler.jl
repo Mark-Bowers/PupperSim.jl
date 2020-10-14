@@ -27,7 +27,7 @@ function get_axes_and_buttons_map(joy::GLFW.Joystick)
 		    NO_COMMAND, NO_COMMAND, NO_COMMAND, NO_COMMAND, NO_COMMAND)
 
 	elseif occursin("Xbox", joystickname)
-		# Jaystick Cannot function as gamepad on linux
+		# Joystick Cannot function as gamepad on linux
 		# lookup buttons and axes for Xbox controller
 		global AXIS_LEFT_X       = 1
 		global AXIS_LEFT_Y       = 2
@@ -50,7 +50,7 @@ function get_axes_and_buttons_map(joy::GLFW.Joystick)
 			NO_COMMAND, NO_COMMAND, NO_COMMAND,
 			NO_COMMAND, NO_COMMAND)
 	elseif joystickname == "Wireless Controller"
-		# Jaystick Cannot function as gamepad on linux
+		# Joystick Cannot function as gamepad on linux
 		# lookup buttons and axes for DS4 controller
 		global AXIS_LEFT_X       = 1
 		global AXIS_LEFT_Y       = 2
