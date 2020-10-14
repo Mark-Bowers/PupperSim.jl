@@ -26,26 +26,27 @@ end
 
 function execute_robotcmd(s::mjSim, robotcmd::RobotCmd)
     c = s.robot.command # shorthand
+    # set_height!, adjust_height!
 
     # Velocity PgUp / PgDn
     if robotcmd == INCREASE_VELOCITY        c.horizontal_velocity[1] += 0.01
     elseif robotcmd == DECREASE_VELOCITY    c.horizontal_velocity[1] -= 0.01
 
     # Height Home / End
-    elseif robotcmd == INCREASE_HEIGHT      c.height -= 0.005
-    elseif robotcmd == DECREASE_HEIGHT      c.height += 0.005
+    elseif robotcmd == INCREASE_HEIGHT      adjust_height!(s.robot, +1)
+    elseif robotcmd == DECREASE_HEIGHT      adjust_height!(s.robot, -1)
 
     # Yaw left / right arrow
     elseif robotcmd == INCREASE_YAW         c.yaw_rate += 0.02
     elseif robotcmd == DECREASE_YAW         c.yaw_rate -= 0.02
 
     # Pitch up / down arrow
-    elseif robotcmd == PITCH_NOSE_UP        c.pitch += 0.03
-    elseif robotcmd == PITCH_NOSE_DOWN      c.pitch -= 0.03
+    elseif robotcmd == PITCH_NOSE_UP        set_pitch!(s.robot, +1)
+    elseif robotcmd == PITCH_NOSE_DOWN      set_pitch!(s.robot, -1)
 
     # Roll left (/) / right (+)
-    elseif robotcmd == ROLL_LEFT            c.roll += 0.02
-    elseif robotcmd == ROLL_RIGHT           c.roll -= 0.02
+    elseif robotcmd == ROLL_LEFT            adjust_roll!(s.robot, -1)
+    elseif robotcmd == ROLL_RIGHT           adjust_roll!(s.robot, +1)
 
     # Toggle activate (-) / trot (+) / hop (Enter)
     elseif robotcmd == TOGGLE_ACTIVATION    toggle_activate(s.robot)

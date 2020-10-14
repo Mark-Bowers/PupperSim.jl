@@ -98,19 +98,9 @@ JoystickIsGamepad(joy::GLFW.Joystick) = Bool(ccall((:glfwJoystickIsGamepad, GLFW
 
 GetGamepadState(joy::GLFW.Joystick, state) = Bool(ccall((:glfwGetGamepadState, GLFW.libglfw), Cint, (Cint, Ref{GLFWgamepadstate}), joy, state))
 
-# Functions ported over from JoystickInterface.py
-function deadband(value, band_radius)
-    return max(value - band_radius, 0) + min(value + band_radius, 0)
-end
-
-function clipped_first_order_filter(input, target, max_rate, tau)
-    rate = (target - input) / tau
-    return clamp(rate, -max_rate, max_rate)
-end
 
 function handle_scalar_settings(s::mjSim, buttons, axes)
     config  = s.robot.controller.config
-    state   = s.robot.state
     command = s.robot.command
 
     # Velocity
@@ -121,33 +111,15 @@ function handle_scalar_settings(s::mjSim, buttons, axes)
     command.yaw_rate = axes[AXIS_RIGHT_X] * -config.max_yaw_rate
 
     # Pitch
-    pitch = axes[AXIS_RIGHT_Y] * -config.max_pitch
-    #println("pitch: $pitch")
-    deadbanded_pitch = deadband(pitch, config.pitch_deadband)
-    pitch_rate = clipped_first_order_filter(
-        state.pitch,
-        deadbanded_pitch,
-        config.max_pitch_rate,
-        config.pitch_time_constant
-    )
-    #println("pitch_rate: $pitch_rate")
-    message_dt = 1.0 / s.refreshrate
-    command.pitch = state.pitch + message_dt * pitch_rate
-    #println("Setting command.pitch to $(command.pitch)")
+    set_pitch!(s.robot, axes[AXIS_RIGHT_Y])
 
     # Roll
     dpadx = Int(buttons[BUTTON_DPAD_RIGHT]) - Int(buttons[BUTTON_DPAD_LEFT])
-    if dpadx != 0
-        roll = state.roll + message_dt * config.roll_speed * dpadx
-        command.roll = clamp(roll, -1.0, 1.0)
-    end
+    dpadx != 0 && adjust_roll!(s.robot, dpadx)
 
     # Height
-    dpady = Int(buttons[BUTTON_DPAD_UP]) - Int(buttons[BUTTON_DPAD_DOWN])
-    if dpady != 0
-        height = state.height - message_dt * config.z_speed * dpady
-        command.height = clamp(height, -0.25, -0.025)
-    end
+	dpady = Int(buttons[BUTTON_DPAD_UP]) - Int(buttons[BUTTON_DPAD_DOWN])
+    dpady != 0 && adjust_height!(s.robot, dpady)
 end
 
 function handle_behavior_state_change(s::mjSim, buttons)
@@ -155,6 +127,8 @@ function handle_behavior_state_change(s::mjSim, buttons)
     global prev_buttons = deepcopy(buttons)
 
     for (doit, robotcmd) in zip(triggered, button_commands)
+		b_doit = Bool(doit)
+		println("do it: $b_doit")
         if Bool(doit)
             # println("Executing Robot Command: $(repr(robotcmd))")
             execute_robotcmd(s, robotcmd)
