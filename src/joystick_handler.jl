@@ -1,6 +1,8 @@
 # GLFW Gamepad functions
 # https://www.glfw.org/docs/latest/input_guide.html#gamepad
 
+global prev_buttons = nothing
+
 function get_axes_and_buttons_map(joy::GLFW.Joystick)
 	joystickname = GLFW.GetJoystickName(joy)
 	if JoystickIsGamepad(joy)
@@ -16,7 +18,6 @@ function get_axes_and_buttons_map(joy::GLFW.Joystick)
 		global BUTTON_DPAD_DOWN  = 14
 		global BUTTON_DPAD_LEFT  = 15
 
-		global prev_buttons = @SVector fill(0x00, 15)
 		global button_commands = SVector{15, RobotCmd}(
 		    CYCLE_HOP,          # GLFW_GAMEPAD_BUTTON_CROSS
 		    NO_COMMAND, NO_COMMAND, NO_COMMAND,
@@ -38,7 +39,6 @@ function get_axes_and_buttons_map(joy::GLFW.Joystick)
 		global BUTTON_DPAD_DOWN  = 18
 		global BUTTON_DPAD_LEFT  = 19
 
-		global prev_buttons = @SVector fill(0x00, 19)
 		global button_commands = SVector{19, RobotCmd}(
 			CYCLE_HOP,          # XBox Controller A
 			NO_COMMAND, NO_COMMAND, NO_COMMAND,
@@ -62,7 +62,6 @@ function get_axes_and_buttons_map(joy::GLFW.Joystick)
 		global BUTTON_DPAD_DOWN  = 17
 		global BUTTON_DPAD_LEFT  = 18
 
-		global prev_buttons = @SVector fill(0x00, 18)
 		global button_commands = SVector{18, RobotCmd}(
 			NO_COMMAND,
 			CYCLE_HOP,          # DS4 Controller X
@@ -118,12 +117,16 @@ function handle_scalar_settings(s::mjSim, buttons, axes)
 end
 
 function handle_behavior_state_change(s::mjSim, buttons)
-    triggered = buttons .& (prev_buttons .⊻ buttons)
+    if (prev_buttons == nothing)
+        triggered = buttons
+    else
+        triggered = buttons .& (prev_buttons .⊻ buttons)
+    end
     global prev_buttons = deepcopy(buttons)
 
     for (doit, robotcmd) in zip(triggered, button_commands)
 		b_doit = Bool(doit)
-		println("do it: $b_doit")
+		#println("do it: $b_doit")
         if Bool(doit)
             # println("Executing Robot Command: $(repr(robotcmd))")
             execute_robotcmd(s, robotcmd)
