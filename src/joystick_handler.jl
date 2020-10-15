@@ -124,14 +124,14 @@ function handle_behavior_state_change(s::mjSim, buttons)
     end
     global prev_buttons = deepcopy(buttons)
 
-    for (doit, robotcmd) in zip(triggered, button_commands)
-		b_doit = Bool(doit)
-		#println("do it: $b_doit")
-        if Bool(doit)
-            # println("Executing Robot Command: $(repr(robotcmd))")
-            execute_robotcmd(s, robotcmd)
-        end
-    end
+	indx = findall(x -> x == 1, triggered)
+
+	if length(indx) == 1
+		robotcmd = button_commands[indx[1]]
+		execute_robotcmd(s, robotcmd)	
+	elseif length(indx) > 1
+		throw("Pressing multiple buttons at once is illegal.")
+	end
 end
 
 function gamepad(s::mjSim, joy::GLFW.Joystick)
