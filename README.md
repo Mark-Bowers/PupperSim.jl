@@ -50,3 +50,6 @@ To perturb the robot, double click on the body you want to perturb, then hold Co
 ## Additional Information
 
 https://mark-bowers.github.io/
+
+## Credits
+This effort is based on previous work by **Nathan Kau** [PupperSimulation](https://github.com/Nate711/PupperSimulation) and **Kendall Lowrey** [MujocoSim](hhttps://github.com/klowrey/MujocoSim.jl).
