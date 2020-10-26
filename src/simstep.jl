@@ -7,6 +7,9 @@ function simstep(s::mjSim)
     m = s.m
 
     if s.robot !== nothing
+        # Check for gamepad input
+        gamepad(s, GLFW.JOYSTICK_1)
+
         # Execute next step in command script
         step_script(s::mjSim, s.robot)
 
