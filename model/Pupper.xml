@@ -85,49 +85,28 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
         <camera name="track" mode="trackcom" pos="0 -2 0.3" xyaxes="1 0 0 0 0 1"/>
         <freejoint/>
         <!--<geom name="torso" size="0.151924 0.05 0.03425" type="box" rgba=".8 .1 .1 .1"/>-->
-        <!-- This is a +90 degree rotation about the z-axis (i.e. [0 0 1]).
-        Recall the real part yields cos(-3pi/4) = -sqrt(2)/2,
-         and the imaginary part yields sin(-3pi/4) = +sqrt(2)/2
-        Doubling theta to find the degree of rotation gives -3pi/2 = -270 degrees = +90 degrees-->
+        <!-- This is a +90 degree rotation about the z-axis (i.e. [0 0 1]). -->
         <body pos="0.0 0.0 -0.03425" quat="-0.7071068 0 0 0.7071068">
           <camera name="puppercam" pos="0 0.12 0.11" quat="0.7453559925 0.6666666 0 0"/>
           <geom type="mesh" mesh="Body" pos="0 -0.133925 0.0015" material="ABS"/>
           <site type="box" pos="0 0 0.0666" size="0.03 0.15 0.002" material="CarbonFiber" rgba=".5 .5 .5 .1"/>
           <!--fr servo-->
-          <!-- This is a +180 degree rotation about the vector sqrt(2)/2[-1 0 1].
-           Recall the real part yields cos(pi/2) = 0,
-           and the imaginary part yields sin(pi/2) = 1
-           Doubling theta to find the degree of rotation gives pi = 180 degrees
-           The vector [-1 0 1] is multiplied by a normalization constant of sqrt(2)/2 to give [-sqrt(2)/2 0 sqrt(2)/2]
-           Notice this is exactly equal to the imaginary part of the quaternion-->
           <body pos="0.05 0.028 0.0542" quat="0 -0.7071068 0 0.7071068">
             <geom type="mesh" mesh="CLS6336HV" material="ABS"/>
             <site type="box" pos="0.0205 -0.02 0.01" size="0.018 0.019 0.0101" material="CLS6336HV"/>
           </body>
           <!--fl servo-->
-          <!-- This is a +180 degree rotation about the vector sqrt(2)/2[-1 0 1].
-           Recall the real part yields cos(pi/2) = 0,
-           and the imaginary part yields sin(pi/2) = 1
-           Doubling theta to find the degree of rotation gives pi = 180 degrees
-           The vector [-1 0 1] is multiplied by a normalization constant of sqrt(2)/2 to give [-sqrt(2)/2 0 sqrt(2)/2]
-           Notice this is exactly equal to the imaginary part of the quaternion-->
           <body pos="-0.03 0.028 0.0542" quat="0 -0.7071068 0 0.7071068">
             <geom type="mesh" mesh="CLS6336HV" material="ABS"/>
             <site type="box" pos="0.0205 -0.02 0.01" size="0.018 0.019 0.0101" material="CLS6336HV"/>
           </body>
           <!--br servo-->
-          <!-- This is a +180 degree rotation about the vector sqrt(2)/2[-1 0 1].
-           Recall the real part yields cos(pi/2) = 0,
-           and the imaginary part yields sin(pi/2) = 1
-           Doubling theta to find the degree of rotation gives pi = 180 degrees
-           The vector [-1 0 1] is multiplied by a normalization constant of sqrt(2)/2 to give [-sqrt(2)/2 0 sqrt(2)/2]
-           Notice this is exactly equal to the imaginary part of the quaternion-->
           <body pos="0.05 -0.1721 0.0542" quat="0 -0.7071068 0 0.7071068">
             <geom type="mesh" mesh="CLS6336HV" material="ABS"/>
             <site type="box" pos="0.0205 -0.02 0.01" size="0.018 0.019 0.0101" material="CLS6336HV"/>
           </body>
+          <!--bl servo-->
           <body pos="-0.03 -0.1721 0.0542" quat="0 -0.7071068 0 0.7071068">
-            <!--bl servo-->
             <geom type="mesh" mesh="CLS6336HV" material="ABS"/>
             <site type="box" pos="0.0205 -0.02 0.01" size="0.018 0.019 0.0101" material="CLS6336HV"/>
           </body>
@@ -136,13 +115,10 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
 
         <body name="fr_module" pos="0.1 -0.04 0">
             <!--<geom pos="0 -0.0132 0" name="fr_block" type="box" size="0.0197 0.0372 0.0107" rgba="0.4 0.8 .4 .5"/>-->
-            <!-- This is a +90 degree rotation about the z-axis (i.e. [0 1 0]).
-            Recall the real part yields cos(-3pi/4) = -sqrt(2)/2,
-             and the imaginary part yields sin(-3pi/4) = +sqrt(2)/2
-            Doubling theta to find the degree of rotation gives -3pi/2 = -270 degrees = +90 degrees-->
+            <!-- This is a +90 degree rotation about the z-axis (i.e. [0 1 0]). -->
             <body pos="-0.02 -0.042 0.022" quat="0.7071068 0 0.7071068 0">
               <geom type="mesh" mesh="Hub" material="ABS"/>
-              <!-- Why are there two different sites here? Do we even use both of them? -->
+              <!-- servo decals -->
               <site type="box" pos="0.0129 -0.02 0.02955" quat="0.7071068 0 -0.7071068 0" size="0.018 0.019 0.0101" material="CLS6336HV"/>
               <site type="box" pos="0.0129 0.044 0.02955" quat="0 -0.7071068 0 0.7071068" size="0.018 0.019 0.0101" material="CLS6336HV"/>
             </body>
@@ -161,7 +137,7 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
             <!--<geom pos = "0 0.0132 0" name="fl_block" type="box" size="0.0197 0.0372 0.0107" rgba="0.6 0.8 .4 1"/>-->
             <body pos="-0.022 0.042 -0.004" quat="0 0.7071068 0 0.7071068">
               <geom type="mesh" mesh="Hub" material="ABS"/>
-              <!-- Why are there two different sites here? Do we even use both of them? -->
+              <!-- servo decals -->
               <site type="box" pos="0.0129 -0.02 0.02955" quat="0.7071068 0 -0.7071068 0" size="0.018 0.019 0.0101" material="CLS6336HV"/>
               <site type="box" pos="0.0129 0.044 0.02955" quat="0 -0.7071068 0 0.7071068" size="0.018 0.019 0.0101" material="CLS6336HV"/>
             </body>
@@ -180,7 +156,7 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
             <!--<geom pos = "0 -0.0132 0" name="br_block" type="box" size="0.0197 0.0372 0.0107" rgba="0.6 0.8 .4 1"/>-->
             <body pos="-0.02 -0.042 0.022" quat="0.7071068 0 0.7071068 0">
               <geom type="mesh" mesh="Hub" material="ABS"/>
-              <!-- Why are there two different sites here? Do we even use both of them? -->
+              <!-- servo decals -->
               <site type="box" pos="0.0129 -0.02 0.02955" quat="0.7071068 0 -0.7071068 0" size="0.018 0.019 0.0101" material="CLS6336HV"/>
               <site type="box" pos="0.0129 0.044 0.02955" quat="0 -0.7071068 0 0.7071068" size="0.018 0.019 0.0101" material="CLS6336HV"/>
             </body>
@@ -199,7 +175,7 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
             <!--<geom pos = "0 0.0132 0" name="bl_block" type="box" size="0.0197 0.0372 0.0107" rgba="0.6 0.8 .4 1"/>-->
             <body pos="-0.022 0.042 -0.004" quat="0 0.7071068 0 0.7071068">
               <geom type="mesh" mesh="Hub" material="ABS"/>
-              <!-- Why are there two different sites here? Do we even use both of them? -->
+              <!-- servo decals -->
               <site type="box" pos="0.0129 -0.02 0.02955" quat="0.7071068 0 -0.7071068 0" size="0.018 0.019 0.0101" material="CLS6336HV"/>
               <site type="box" pos="0.0129 0.044 0.02955" quat="0 -0.7071068 0 0.7071068" size="0.018 0.019 0.0101" material="CLS6336HV"/>
             </body>
