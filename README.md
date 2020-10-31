@@ -31,7 +31,17 @@ julia> ]
 (v1.5) pkg> registry add https://github.com/Lyceum/LyceumRegistry.git
 (v1.5) pkg> add MuJoCo@0.3.0
 (v1.5) pkg> add https://github.com/Mark-Bowers/PupperSim.jl
+(v1.5) pkg> add Conda
 ```
+
+Then, press backspace to exit the Pkg mode and return to the regular Julia REPL.
+```julia-repl
+julia> using Conda
+julia> Conda.add_channel("conda-forge")
+julia> Conda.add("transforms3d")
+```
+
+Now you're ready to use the Pupper simulator!
 
 ## Usage
 This is example code for how to render Pupper with MuJoCo.jl, with most of the structure and features taken from the simulate.cpp example code provided by the default [MuJoCo software](http://mujoco.org/). While some of the newest UI features are missing, the current code allows for dynamics simulation with mouse and camera interactivity.
