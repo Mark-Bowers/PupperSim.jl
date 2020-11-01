@@ -1,0 +1,209 @@
+<!-- Stanford Pupper Model
+
+The state space is populated with joints in the order that they are
+defined in this file.
+
+The elements of the control variable s.d.ctrl correspond to:
+[fr_x, fr_y, fr_ext,
+fl_x, fl_y, fl_ext,
+br_x, br_y, br_ext,
+bl_x, bl_y, bl_ext]
+
+fr = front-right
+fl = front-left
+br = back-right
+bl = back-left
+_x indicates rotation on the forward/back axis of the robot
+_y indicates rotation on the left/right axis of the hip module
+_ext indicates linear extension of the leg. Positive values = leg goes up
+-->
+<mujoco model="Pupper">
+  <compiler angle="radian" meshdir="mesh/" texturedir="texture/"/>
+
+  <default>
+    <mesh scale="0.001 0.001 0.001"/>
+    <joint type="hinge" limited="true" armature="0.0024" solimplimit="0.9 0.95 0.01" solreflimit="0.01 1" stiffness="0.1" damping="0.5"/>
+    <geom conaffinity="0" condim="3" contype="1" friction="0.9 0.005 0.0001" solimp="0.9 0.95 0.01" solref="0.01 1"/>
+    <position forcelimited="true"/>
+  </default>
+
+  <option>
+    <flag sensornoise="disable"/>
+  </option>
+
+  <!--<sensor>
+    <accelerometer name="accel" noise="0.01" site="imu_site"/>
+    <gyro name="gyro" noise="0.02" site="imu_site"/>
+</sensor>-->
+
+  <size nstack="300000" nuser_geom="1"/>
+
+  <option timestep="0.0001"/>
+
+  <asset>
+    <texture builtin="gradient" height="100" rgb1="1 1 1" rgb2="0 0 0" type="skybox" width="100"/>
+    <mesh file="TCBody.stl"/>
+    <mesh file="TCUpperLeg.stl"/>
+    <mesh file="M2006.stl"/>
+    <mesh file="fcupperleg.stl"/>
+    <mesh file="Shroud.stl"/>
+    <mesh file="Shroud(Mirror).stl"/>
+    <mesh file="fclowerleg.stl"/>
+    <texture type="2d" file="BrushedAluminum.png"/>
+    <texture type="2d" file="Oak.png"/>
+    <texture type="cube" file="Marble.png"/>
+    <material name="BrushedAluminum" texture="BrushedAluminum" specular="0.9" shininess="0.9" reflectance="0.3"/>
+    <material name="M2006" specular="0.9" shininess="0.9" reflectance="0.3" rgba = ".1 .1 .1 1"/>
+    <material name="Oak" texture="Oak" specular="0.1" shininess="0.01" reflectance="0.01" texrepeat="4 4"/>
+    <material name="ABS" rgba="1 1 1 1"/>
+    <material name="Marble" texture="Marble" rgba=".7 .65 .65 0.9"/>
+  </asset>
+
+  <worldbody>
+    <!-- <light dir="-0 0 -1.3" directional="true" exponent=".001" pos="0 0 1.3" specular=".1 .1 .1"/>  castshadow="true" cutoff="35" -->
+    <light pos="0.4 -0.2 1.5" dir="-0.4 0.2 -1.5"/>
+    <!--
+        ambient : real(3), "0 0 0" The ambient color of the light.
+        diffuse : real(3), "0.7 0.7 0.7" The diffuse color of the light.
+        specular : real(3), "0.3 0.3 0.3" The specular color of the light.
+    -->
+    <!--<geom type="plane" material="Oak" size="10 10 .1" conaffinity="1" condim="3" name="floor"/>-->
+    <geom type="plane" material="Oak" size="2 2 .4" conaffinity="1" condim="3" name="floor"/>
+    <body>
+      <joint type="free" limited="false" damping=".3"/>
+      <geom type="sphere" material="BrushedAluminum" pos="0.5 0.5 0.07" size="0.07" conaffinity="1" condim="3" name="ball1" rgba="1 0 0 1"/>
+    </body>
+
+    <body name="torso" pos="0 0 0.27">
+      <camera name="track" mode="trackcom" pos="0 -2 0.3" xyaxes="1 0 0 0 0 1"/>
+      <freejoint/>
+      <body pos="0.0 0.0 -0.03425" quat="-0.7071068 0 0 0.7071068">
+        <camera name="puppercam" pos="0 0.16 0.11" quat="0.7453559925 0.6666666 0 0"/>
+        <geom type="mesh" mesh="TCBody" pos="0 -0.08 0.05" quat="0 0 0.7071068 0.7071068" material="ABS"/>
+        <!--fr abduction/adduction motor -->
+        <!--fl abduction/adduction motor-->
+        <!--br abduction/adduction motor-->
+        <!--bl abduction/adduction motor-->
+      </body>
+      <!--<site name="imu_site" size=".01 .01 .01" type="box"/>-->
+
+      <body name="fr_module" pos="0.1 -0.04 0">
+        <body pos="-0.0145 0.008 -0.015" quat="0 0 0.7071068 0.7071068">
+          <!-- pos and quat on motor orient the tab -->
+          <geom type="mesh" mesh="M2006" material="M2006" pos="-0.015 -0.005 0" quat="-0.9238795 0 0 0.3826834"/>
+        </body>
+          <joint name="fr_x" axis="1 0 0" range="-1.57 1.57"/>
+        <body pos="-0.0145 0.008 -0.015" quat="0 0 0.7071068 0.7071068">
+          <body pos="-0.015 0.015 -0.037" quat="0 0 0.7071068 0.7071068">
+            <joint name="fr_y" axis="0 1 0" range="-1.57 1.57"/>
+            <body name = "frup" pos = "0 0 -0.0785" quat="-.5 -.5 .5 .5">
+              <geom type="mesh" mesh="fcupperleg" rgba = "1 1 1 1"/>
+              <geom type="mesh" mesh="Shroud" rgba = "1 1 1 1"/> -->
+              <geom type="mesh" mesh="M2006" material="M2006" pos=".04 -0.0205 .001" quat="-0.6532815 0.2705981 -0.6532815 0.2705981"/>
+              <!-- <site type="cylinder" pos="0.05 0 -0.00012" quat="-0.6532815 0.2705981 -0.6532815 0.2705981" size="0.0031 0.008" material="BrushedAluminum"/> -->
+              <!-- <geom type="mesh" mesh="TCUpperLeg"/> -->
+              <body quat="0 -0.7071068 0 0.7071068">
+                <joint name="fr_y2" axis="0 0 1" range="-3.14 0.0"/>
+                <geom type="mesh" mesh="fclowerleg" quat="0 0 0 1" rgba="1 1 1 1"/>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+
+      <body name="fl_module" pos="0.1 0.04 0">
+        <body pos="-0.022 0.042 -0.004" quat="0 0.7071068 0 0.7071068">
+          <!--                                            up/down   in/out   front/back-->
+          <geom type="mesh" mesh="M2006" material="M2006" pos="0.018 0.05 0.0365" quat="0.707 -0.707 0 0"/>
+        </body>
+        <joint name="fl_x" axis="1 0 0" range="-1.57 1.57"/>
+        <body name="fl" pos="0 0.03 0">
+          <joint name="fl_y" axis="0 1 0" range="-1.57 1.57"/>
+          <body name = "flup" pos = "0 0 0" quat=".5 -.5 .5 -.5">
+            <geom axisangle="0 1 0 0" name="fl" size="0.01" type="mesh" mesh="fcupperleg" rgba = "1 1 1 1" density="50"/>
+          </body>
+          <body name="fl2" pos="0 0 -0.0785">
+            <!--                                            front/back in/out up/down -->
+            <geom type="mesh" mesh="M2006" material="M2006" pos="-0.013 0.03 -0.015" quat="0 0 .707 .707"/>
+            <body name = "fllow" pos = "0 0 0" quat="0 0 .707 .707">
+              <joint name="fl_y2" axis="0 0 1" range="-3.14 0.0"/>
+              <geom axisangle="0 1 0 0" name="fl_l2"  size="0.01" type="mesh" mesh="fclowerleg" rgba = "1 1 1 1" density="50"/>
+            </body>
+          </body>
+        </body>
+      </body>
+
+      <body name="br_module" pos="-0.1 -0.04 0">
+        <body pos="-0.0145 0.008 -0.015" quat="0 0 0.7071068 0.7071068">
+          <!-- pos and quat on motor orient the tab -->
+          <geom type="mesh" mesh="M2006" material="M2006" pos="-0.015 -0.005 0" quat="-0.9238795 0 0 0.3826834"/>
+        </body>
+          <joint name="br_x" axis="1 0 0" range="-1.57 1.57"/>
+        <body pos="-0.0145 0.008 -0.015" quat="0 0 0.7071068 0.7071068">
+          <body pos="-0.015 0.015 -0.037" quat="0 0 0.7071068 0.7071068">
+            <joint name="br_y" axis="0 1 0" range="-1.57 1.57"/>
+            <body pos = "0 0 -0.0785" quat="-.5 -.5 .5 .5">
+              <geom type="mesh" mesh="fcupperleg" rgba = "1 1 1 1"/>
+              <geom type="mesh" mesh="Shroud" rgba = "1 1 1 1"/> -->
+              <geom type="mesh" mesh="M2006" material="M2006" pos=".04 -0.0205 .001" quat="-0.6532815 0.2705981 -0.6532815 0.2705981"/>
+              <!-- <geom type="mesh" mesh="TCUpperLeg"/> -->
+              <body quat="0 -0.7071068 0 0.7071068">
+                <joint name="br_y2" axis="0 0 1" range="-3.14 0.0"/>
+                <geom type="mesh" mesh="fclowerleg" quat="0 0 0 1" rgba="1 1 1 1"/>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+
+      <body name="bl_module" pos="-0.1 0.04 0">
+        <body pos="-0.022 0.042 -0.004" quat="0 0.7071068 0 0.7071068">
+          <!--                                            up/down   in/out   front/back-->
+          <geom type="mesh" mesh="M2006" material="M2006" pos="0.018 0.05 0.0365" quat="0.707 -0.707 0 0"/>
+        </body>
+        <joint name="bl_x" axis="1 0 0" range="-1.57 1.57"/>
+        <body name="bl" pos="0 0.03 0">
+          <joint name="bl_y" axis="0 1 0" range="-1.57 1.57"/>
+          <body name = "blup" pos = "0 0 0" quat=".5 -.5 .5 -.5">
+            <geom axisangle="0 1 0 0" name="bl" size="0.01" type="mesh" mesh="fcupperleg" rgba = "1 1 1 1" density="50"/>
+          </body>
+          <body name="bl2" pos="0 0 -0.0785">
+            <!--                                            front/back in/out up/down -->
+            <geom type="mesh" mesh="M2006" material="M2006" pos="-0.013 0.03 -0.015" quat="0 0 .707 .707"/>
+            <body name = "bllow" pos = "0 0 0" quat="0 0 .707 .707">
+              <joint name="bl_y2" axis="0 0 1" range="-3.14 0.0"/>
+              <geom axisangle="0 1 0 0" name="bl_l2"  size="0.01" type="mesh" mesh="fclowerleg" rgba = "1 1 1 1" density="50"/>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+
+  <actuator>
+    <!-- gear: This attribute scales the length (and consequently moment arms, velocity and force) of the actuator, for all transmission types.
+             It is different from the gain in the force generation mechanism, because the gain only scales the force output and does not affect
+             the length, moment arms and velocity. For actuators with scalar transmission, only the first element of this vector is used.
+             The remaining elements are needed for joint, jointinparent and site transmissions where this attribute is used to specify 3D force
+             and torque axes.  -->
+    <!-- joint: This attribute determines the type of actuator transmission. If this attribute is specified, the actuator acts on the given joint.
+              For hinge and slide joints, the actuator length equals the joint position/angle times the first element of gear.  -->
+    <!-- kp: Position feedback gain.  -->
+    <!-- forcerange: Range for clamping the force output. The compiler expects the first value to be no greater than the second value.  -->
+    <position gear="1" joint="fr_x" name="fr_x"   kp="300" forcerange="-6.0 6.0"/>
+    <position gear="1" joint="fr_y" name="fr_y"   kp="300" forcerange="-6.0 6.0"/>
+    <position gear="1" joint="fr_y2" name="fr_y2" kp="300" forcerange="-6.0 6.0"/>
+
+    <position gear="1" joint="fl_x" name="fl_x"   kp="300" forcerange="-6.0 6.0"/>
+    <position gear="1" joint="fl_y" name="fl_y"   kp="300" forcerange="-6.0 6.0"/>
+    <position gear="1" joint="fl_y2" name="fl_y2" kp="300" forcerange="-6.0 6.0"/>
+
+    <position gear="1" joint="br_x" name="br_x"   kp="300" forcerange="-6.0 6.0"/>
+    <position gear="1" joint="br_y" name="br_y"   kp="300" forcerange="-6.0 6.0"/>
+    <position gear="1" joint="br_y2" name="br_y2" kp="300" forcerange="-6.0 6.0"/>
+
+    <position gear="1" joint="bl_x" name="bl_x"   kp="300" forcerange="-6.0 6.0"/>
+    <position gear="1" joint="bl_y" name="bl_y"   kp="300" forcerange="-6.0 6.0"/>
+    <position gear="1" joint="bl_y2" name="bl_y2" kp="300" forcerange="-6.0 6.0"/>
+  </actuator>
+</mujoco>
