@@ -23,8 +23,11 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
   <default>
     <mesh scale="0.001 0.001 0.001"/>
     <joint type="hinge" limited="true" armature="0.0024" solimplimit="0.9 0.95 0.01" solreflimit="0.01 1" stiffness="0.1" damping="0.5"/>
-    <geom conaffinity="0" condim="3" contype="1" friction="0.9 0.005 0.0001" solimp="0.9 0.95 0.01" solref="0.01 1"/>
+    <geom conaffinity="0" friction="0.9 0.005 0.0001" solimp="0.9 0.95 0.01" solref="0.01 1"/>  <!--solimp="0.9 0.95 0.01" "0.9 0.95 0.001 0.5 2" solref="0.01 1" "0.02 1"-->
     <position forcelimited="true"/>
+    <default class="2x4">
+      <geom type="box" material="Fir" size="0.045 0.30 0.02" conaffinity="1"/>
+    </default>
   </default>
 
   <option>
@@ -49,32 +52,46 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
     <mesh file="Shroud.stl"/>
     <mesh file="Shroud(Mirror).stl"/>
     <mesh file="fclowerleg.stl"/>
-    <texture type="2d" file="BrushedAluminum.png"/>
-    <texture type="2d" file="Oak.png"/>
-    <texture type="cube" file="Marble.png"/>
-    <material name="BrushedAluminum" texture="BrushedAluminum" specular="0.9" shininess="0.9" reflectance="0.3"/>
-    <material name="M2006" specular="0.9" shininess="0.9" reflectance="0.3" rgba = ".1 .1 .1 1"/>
-    <material name="Oak" texture="Oak" specular="0.1" shininess="0.01" reflectance="0.01" texrepeat="4 4"/>
+
+    <texture file="BrushedAluminum.png" type="2d"/>
+    <texture file="Concrete.png" type="2d"/>
+    <texture file="Fir.png" type="cube" gridsize="3 4" gridlayout=".U..LFRB.D.."/>
+    <texture file="Marble.png" type="cube"/>
+    <texture file="Oak.png" type="2d"/>
+
     <material name="ABS" rgba="1 1 1 1"/>
+    <material name="BrushedAluminum" texture="BrushedAluminum" specular="0.9" shininess="0.9" reflectance="0.3"/>
+    <material name="Concrete" texture="Concrete" specular="0" shininess="0.1" reflectance="0" texrepeat="2 2"/>
+    <material name="Fir" texture="Fir" specular="0.1" shininess="0.01" reflectance="0.01" texrepeat="1 3"/>
+    <material name="M2006" specular="0.9" shininess="0.9" reflectance="0.3" rgba = ".1 .1 .1 1"/>
     <material name="Marble" texture="Marble" rgba=".7 .65 .65 0.9"/>
+    <material name="Oak" texture="Oak" specular="0.1" shininess="0.01" reflectance="0.01" texrepeat="4 4"/>
   </asset>
 
   <worldbody>
     <!-- <light dir="-0 0 -1.3" directional="true" exponent=".001" pos="0 0 1.3" specular=".1 .1 .1"/>  castshadow="true" cutoff="35" -->
-    <light pos="0.4 -0.2 1.5" dir="-0.4 0.2 -1.5"/>
+    <light directional="true" diffuse=".2 .2 .2" specular="0.1 0.1 0.1" pos="0 0 5.0" dir="0 0 -1"/>
+    <light directional="true" diffuse=".3 .3 .3" specular="0.2 0.2 0.2" pos="0 0 4" dir="0 0 -1"/>
+    <!-- <light pos="0.4 -0.2 1.5" dir="-0.4 0.2 -1.5"/> -->
     <!--
         ambient : real(3), "0 0 0" The ambient color of the light.
         diffuse : real(3), "0.7 0.7 0.7" The diffuse color of the light.
         specular : real(3), "0.3 0.3 0.3" The specular color of the light.
     -->
-    <!--<geom type="plane" material="Oak" size="10 10 .1" conaffinity="1" condim="3" name="floor"/>-->
-    <geom type="plane" material="Oak" size="2 2 .4" conaffinity="1" condim="3" name="floor"/>
+    <!--<geom type="plane" material="Oak" size="10 10 .1" conaffinity="1" name="floor"/>-->
+    <geom type="plane" material="Concrete" size="4 4 .4" conaffinity="1" name="floor"/>
     <body>
       <joint type="free" limited="false" damping=".3"/>
-      <geom type="sphere" material="BrushedAluminum" pos="0.5 0.5 0.07" size="0.07" conaffinity="1" condim="3" name="ball1" rgba="1 0 0 1"/>
+      <geom type="sphere" material="BrushedAluminum" pos="0.7 -0.5 0.07" size="0.07" conaffinity="1" condim="6" name="ball1" rgba="1 0 0 1"/>
     </body>
+    <site type="box" size="2.5 .5 .001" pos="0 -2.5 0" rgba=".2 .3 .2 .2"/>
+    <site type="box" size="2.5 .5 .001" pos="0 2.5 0" rgba=".2 .3 .2 .2"/>
+    <site type="box" size=".64 0.34 .001" pos="0.6 0.5 0" rgba=".2 .2 .2 .2"/>
+    <geom class="2x4" pos=".25 0.5 0.02"/>
+    <geom class="2x4" pos=".59 0.5 0.02"/>
+    <geom class="2x4" pos=".93 0.5 0.02"/>
 
-    <body name="torso" pos="0 0 0.27">
+    <body name="torso" pos="0 0 0.2">
       <camera name="track" mode="trackcom" pos="0 -2 0.3" xyaxes="1 0 0 0 0 1"/>
       <freejoint/>
       <body pos="0.0 0.0 -0.03425" quat="-0.7071068 0 0 0.7071068">
