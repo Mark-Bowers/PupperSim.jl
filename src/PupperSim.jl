@@ -31,6 +31,7 @@ end
       using CImGui.OpenGLBackend
       using CImGui.GLFWBackend.GLFW
       using CImGui.OpenGLBackend.ModernGL
+@time using ZMQ
 
 include("Sim.jl")
 
@@ -54,6 +55,11 @@ function loadmodel(
 
     s.modelfile = modelfile
     @info("Model file: $modelfile")
+
+    # Turn off shadows by default on non-Windows platforms
+    flags = MVector(s.scn[].flags)
+    flags[1] = Sys.iswindows()
+    s.scn[].flags = flags
 
     GLFW.SetWindowRefreshCallback(s.window, (w)->render(s,w))    # Called on window resize
 
@@ -79,6 +85,15 @@ end
 include("simstep.jl")
 include("render.jl")
 
+function cleanup(s::mjSim)
+    # GLFW
+    GLFW.DestroyWindow(s.window)
+
+    # ZMQ
+    close(s.socket)
+    close(s.context)
+end
+
 # Run the simulation
 """
     simulate([s::mjSim[, robot::Robot]])
@@ -86,20 +101,30 @@ include("render.jl")
 Run the simulation loop
 """
 function simulate(s::mjSim = loadmodel(), robot::Union{Robot, Nothing} = pupper())
-    # Assign the passed in robot to our simulator
-    s.robot = robot
-    robot !== nothing && toggle_activate(robot)
+    try
+        # Assign the passed in robot to our simulator
+        s.robot = robot
+        robot !== nothing && toggle_activate(robot)
 
+        # Loop until the user closes the window
+        while !GLFW.WindowShouldClose(s.window)
+            simstep(s)
 
-    # Loop until the user closes the window
-    while !GLFW.WindowShouldClose(s.window)
-        simstep(s)
-
-        render(s, s.window)
-        GLFW.PollEvents()
+            render(s, s.window)
+            GLFW.PollEvents()
+        end
+    catch err
+        if typeof(err) == InterruptException
+            @info(err)
+        else
+            # Clean up resources before exiting (rethrow)
+            cleanup(s)
+            rethrow(err)
+        end
     end
 
-    GLFW.DestroyWindow(s.window)
+    # Clean up resources and return normally
+    cleanup(s)
 
     return
 end

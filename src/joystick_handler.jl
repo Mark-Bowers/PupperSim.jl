@@ -75,8 +75,13 @@ function gamepad(s::mjSim, joy::GLFW.Joystick)
 
     if GetGamepadState(joy, state)
         buttons = state[].buttons
+        axes = state[].axes
+
+        # println("Gamepad state: $(repr(state))")
+        #message = "Gamepad state: $buttons $(map((x) -> round(x; digits=2), axes))"
+        #send(s.socket, message)
 
         handle_behavior_state_change(s, buttons)
-        handle_scalar_settings(s, buttons, state[].axes)
+        handle_scalar_settings(s, buttons, axes)
     end
 end

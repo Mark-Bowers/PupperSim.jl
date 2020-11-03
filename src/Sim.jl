@@ -64,6 +64,10 @@ mutable struct mjSim
     camviewid::Int
     cambuf::Vector{UInt8}
 
+    # ZMQ
+    context::Context
+    socket::Socket
+
     #uistate::mjuiState
     #ui0::mjUI
     #ui1::mjUI
@@ -74,10 +78,15 @@ mutable struct mjSim
         w = width > 0 ? width : Int(floor(vmode.width / 2))
         h = height > 0 ? height : Int(floor(vmode.height / 2))
 
-        s = 512 # size of square camera viewport in pixels
+        s = 512 # Size of square camera viewport in pixels
 
-        # grab the camera viewport image from the center of the window
+        # Grab the camera viewport image from the center of the window
         camviewport = mjrRect((w-s)/2, (h-s)/2, s, s)
+
+        # ZMQ
+        context = Context()
+        socket = Socket(context, PUB)
+        bind(socket, "tcp://*:5556")
 
         new("", 0.0, 0.0, false, false, false, GLFW.MOUSE_BUTTON_1, 0.0, nothing,
             vmode.refreshrate,
@@ -96,7 +105,9 @@ mutable struct mjSim
             nothing,
             GLFW.CreateWindow(w, h, name),
             vmode,
-            false, -1, camviewport, -1, Vector{UInt8}(undef, 0) # Inset camera view
+            false, -1, camviewport, -1, Vector{UInt8}(undef, 0),    # Inset camera view
+            context,
+            socket
             #ui1
         )
     end

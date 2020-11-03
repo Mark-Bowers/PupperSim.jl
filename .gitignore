@@ -1,9 +1,5 @@
 Manifest.toml
 videos
 puppersim.mp4
-*.out
-*temp*
-*LOG*
-*.ini
 .DS_Store
 *ipynb_checkpoints

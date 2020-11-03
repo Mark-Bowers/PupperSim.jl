@@ -1,4 +1,4 @@
-<!-- Stanford Woofer Model
+<!-- Stanford Pupper Model
 
 The state space is populated with joints in the order that they are
 defined in this file.
@@ -17,6 +17,7 @@ _x indicates rotation on the forward/back axis of the robot
 _y indicates rotation on the left/right axis of the hip module
 _ext indicates linear extension of the leg. Positive values = leg goes up
 -->
+
 <mujoco model="Pupper">
 <compiler angle="radian" meshdir="mesh/" texturedir="texture/"/>
 
