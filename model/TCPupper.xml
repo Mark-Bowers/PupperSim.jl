@@ -46,8 +46,8 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
   <asset>
     <texture builtin="gradient" height="100" rgb1="1 1 1" rgb2="0 0 0" type="skybox" width="100"/>
     <mesh file="TCBody.stl"/>
-    <mesh file="Upper Leg Left Side.stl"/>
-    <mesh file="Upper Leg Right Side.stl"/>
+    <mesh file="Upper Leg Left Side (reduced).stl"/>
+    <mesh file="Upper Leg Right Side (reduced).stl"/>
     <mesh file="M2006.stl"/>
     <mesh file="Lower Leg Round Left Side.stl"/>
     <mesh file="Lower Leg Round Right Side.stl"/>
@@ -104,16 +104,14 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
       <!--<site name="imu_site" size=".01 .01 .01" type="box"/>-->
 
       <body name="fr_module" pos="0.1 -0.04 0">
+        <joint name="fr_x" axis="1 0 0" range="-1.57 1.57"/>
         <body pos="-0.0145 0.008 -0.015" quat="0 0 0.7071068 0.7071068">
-          <!-- pos and quat on motor orient the tab -->
+          <!-- the pos and quat on the motor orient the tab (electrical connection) to point up -->
           <geom type="mesh" mesh="M2006" material="M2006" pos="-0.015 -0.005 0" quat="-0.9238795 0 0 0.3826834"/>
-        </body>
-          <joint name="fr_x" axis="1 0 0" range="-1.57 1.57"/>
-        <body pos="-0.0145 0.008 -0.015" quat="0 0 0.7071068 0.7071068">
           <body pos="-0.015 0.015 -0.037" quat="0 0 0.7071068 0.7071068">
             <joint name="fr_y" axis="0 1 0" range="-1.57 1.57"/>
             <body pos = "0 0 -0.0785" quat="-.5 -.5 .5 .5">
-              <geom type="mesh" mesh="Upper Leg Right Side" rgba = "1 1 1 1"/>
+              <geom type="mesh" mesh="Upper Leg Right Side (reduced)" rgba = "1 1 1 1"/>
               <geom type="mesh" mesh="M2006" material="M2006" pos=".04 -0.0205 .001" quat="-0.6532815 0.2705981 -0.6532815 0.2705981"/>
               <body quat="0 -0.7071068 0 0.7071068">
                 <joint name="fr_y2" axis="0 0 1" range="-3.14 0.0"/>
@@ -125,15 +123,15 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
       </body>
 
       <body name="fl_module" pos="0.1 0.04 0">
+        <joint name="fl_x" axis="1 0 0" range="-1.57 1.57"/>
         <body pos="-0.022 0.042 -0.004" quat="0 0.7071068 0 0.7071068">
           <!--                                            up/down   in/out   front/back-->
           <geom type="mesh" mesh="M2006" material="M2006" pos="0.018 0.05 0.0365" quat="0.707 -0.707 0 0"/>
         </body>
-        <joint name="fl_x" axis="1 0 0" range="-1.57 1.57"/>
         <body pos="0 0.03 0">
           <joint name="fl_y" axis="0 1 0" range="-1.57 1.57"/>
           <body pos = "0 0 -0.0785" quat=".5 .5 .5 .5">
-            <geom type="mesh" mesh="Upper Leg Left Side" rgba = "1 1 1 1"/>
+            <geom type="mesh" mesh="Upper Leg Left Side (reduced)" rgba = "1 1 1 1"/>
           </body>
           <body pos="0 0 -0.0785">
             <!--                                            front/back in/out up/down -->
@@ -147,16 +145,14 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
       </body>
 
       <body name="br_module" pos="-0.1 -0.04 0">
+        <joint name="br_x" axis="1 0 0" range="-1.57 1.57"/>
         <body pos="-0.0145 0.008 -0.015" quat="0 0 0.7071068 0.7071068">
-          <!-- pos and quat on motor orient the tab -->
+          <!-- the pos and quat on the motor orient the tab (electrical connection) to point up -->
           <geom type="mesh" mesh="M2006" material="M2006" pos="-0.015 -0.005 0" quat="-0.9238795 0 0 0.3826834"/>
-        </body>
-          <joint name="br_x" axis="1 0 0" range="-1.57 1.57"/>
-        <body pos="-0.0145 0.008 -0.015" quat="0 0 0.7071068 0.7071068">
           <body pos="-0.015 0.015 -0.037" quat="0 0 0.7071068 0.7071068">
             <joint name="br_y" axis="0 1 0" range="-1.57 1.57"/>
             <body pos = "0 0 -0.0785" quat="-.5 -.5 .5 .5">
-              <geom type="mesh" mesh="Upper Leg Right Side" rgba = "1 1 1 1"/>
+              <geom type="mesh" mesh="Upper Leg Right Side (reduced)" rgba = "1 1 1 1"/>
               <geom type="mesh" mesh="M2006" material="M2006" pos=".04 -0.0205 .001" quat="-0.6532815 0.2705981 -0.6532815 0.2705981"/>
               <body quat="0 -0.7071068 0 0.7071068">
                 <joint name="br_y2" axis="0 0 1" range="-3.14 0.0"/>
@@ -168,15 +164,15 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
       </body>
 
       <body name="bl_module" pos="-0.1 0.04 0">
+        <joint name="bl_x" axis="1 0 0" range="-1.57 1.57"/>
         <body pos="-0.022 0.042 -0.004" quat="0 0.7071068 0 0.7071068">
           <!--                                            up/down   in/out   front/back-->
           <geom type="mesh" mesh="M2006" material="M2006" pos="0.018 0.05 0.0365" quat="0.707 -0.707 0 0"/>
         </body>
-        <joint name="bl_x" axis="1 0 0" range="-1.57 1.57"/>
         <body pos="0 0.03 0">
           <joint name="bl_y" axis="0 1 0" range="-1.57 1.57"/>
           <body pos = "0 0 -0.0785" quat=".5 .5 .5 .5">
-            <geom type="mesh" mesh="Upper Leg Left Side" rgba = "1 1 1 1"/>
+            <geom type="mesh" mesh="Upper Leg Left Side (reduced)" rgba = "1 1 1 1"/>
           </body>
           <body pos="0 0 -0.0785">
             <!--                                            front/back in/out up/down -->
