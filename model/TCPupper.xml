@@ -46,12 +46,11 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
   <asset>
     <texture builtin="gradient" height="100" rgb1="1 1 1" rgb2="0 0 0" type="skybox" width="100"/>
     <mesh file="TCBody.stl"/>
-    <mesh file="TCUpperLeg.stl"/>
+    <mesh file="Upper Leg Left Side.stl"/>
+    <mesh file="Upper Leg Right Side.stl"/>
     <mesh file="M2006.stl"/>
-    <mesh file="fcupperleg.stl"/>
-    <mesh file="Shroud.stl"/>
-    <mesh file="Shroud(Mirror).stl"/>
-    <mesh file="fclowerleg.stl"/>
+    <mesh file="Lower Leg Round Left Side.stl"/>
+    <mesh file="Lower Leg Round Right Side.stl"/>
 
     <texture file="BrushedAluminum.png" type="2d"/>
     <texture file="Concrete.png" type="2d"/>
@@ -113,15 +112,12 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
         <body pos="-0.0145 0.008 -0.015" quat="0 0 0.7071068 0.7071068">
           <body pos="-0.015 0.015 -0.037" quat="0 0 0.7071068 0.7071068">
             <joint name="fr_y" axis="0 1 0" range="-1.57 1.57"/>
-            <body name = "frup" pos = "0 0 -0.0785" quat="-.5 -.5 .5 .5">
-              <geom type="mesh" mesh="fcupperleg" rgba = "1 1 1 1"/>
-              <geom type="mesh" mesh="Shroud" rgba = "1 1 1 1"/> -->
+            <body pos = "0 0 -0.0785" quat="-.5 -.5 .5 .5">
+              <geom type="mesh" mesh="Upper Leg Right Side" rgba = "1 1 1 1"/>
               <geom type="mesh" mesh="M2006" material="M2006" pos=".04 -0.0205 .001" quat="-0.6532815 0.2705981 -0.6532815 0.2705981"/>
-              <!-- <site type="cylinder" pos="0.05 0 -0.00012" quat="-0.6532815 0.2705981 -0.6532815 0.2705981" size="0.0031 0.008" material="BrushedAluminum"/> -->
-              <!-- <geom type="mesh" mesh="TCUpperLeg"/> -->
               <body quat="0 -0.7071068 0 0.7071068">
                 <joint name="fr_y2" axis="0 0 1" range="-3.14 0.0"/>
-                <geom type="mesh" mesh="fclowerleg" quat="0 0 0 1" rgba="1 1 1 1"/>
+                <geom type="mesh" mesh="Lower Leg Round Right Side" quat="0 0 0 1" rgba="1 1 1 1"/>
               </body>
             </body>
           </body>
@@ -134,17 +130,17 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
           <geom type="mesh" mesh="M2006" material="M2006" pos="0.018 0.05 0.0365" quat="0.707 -0.707 0 0"/>
         </body>
         <joint name="fl_x" axis="1 0 0" range="-1.57 1.57"/>
-        <body name="fl" pos="0 0.03 0">
+        <body pos="0 0.03 0">
           <joint name="fl_y" axis="0 1 0" range="-1.57 1.57"/>
-          <body name = "flup" pos = "0 0 0" quat=".5 -.5 .5 -.5">
-            <geom axisangle="0 1 0 0" name="fl" size="0.01" type="mesh" mesh="fcupperleg" rgba = "1 1 1 1" density="50"/>
+          <body pos = "0 0 -0.0785" quat=".5 .5 .5 .5">
+            <geom type="mesh" mesh="Upper Leg Left Side" rgba = "1 1 1 1"/>
           </body>
-          <body name="fl2" pos="0 0 -0.0785">
+          <body pos="0 0 -0.0785">
             <!--                                            front/back in/out up/down -->
             <geom type="mesh" mesh="M2006" material="M2006" pos="-0.013 0.03 -0.015" quat="0 0 .707 .707"/>
-            <body name = "fllow" pos = "0 0 0" quat="0 0 .707 .707">
+            <body quat="0 0 .707 .707">
               <joint name="fl_y2" axis="0 0 1" range="-3.14 0.0"/>
-              <geom axisangle="0 1 0 0" name="fl_l2"  size="0.01" type="mesh" mesh="fclowerleg" rgba = "1 1 1 1" density="50"/>
+              <geom type="mesh" mesh="Lower Leg Round Left Side" rgba = "1 1 1 1"/>
             </body>
           </body>
         </body>
@@ -160,13 +156,11 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
           <body pos="-0.015 0.015 -0.037" quat="0 0 0.7071068 0.7071068">
             <joint name="br_y" axis="0 1 0" range="-1.57 1.57"/>
             <body pos = "0 0 -0.0785" quat="-.5 -.5 .5 .5">
-              <geom type="mesh" mesh="fcupperleg" rgba = "1 1 1 1"/>
-              <geom type="mesh" mesh="Shroud" rgba = "1 1 1 1"/> -->
+              <geom type="mesh" mesh="Upper Leg Right Side" rgba = "1 1 1 1"/>
               <geom type="mesh" mesh="M2006" material="M2006" pos=".04 -0.0205 .001" quat="-0.6532815 0.2705981 -0.6532815 0.2705981"/>
-              <!-- <geom type="mesh" mesh="TCUpperLeg"/> -->
               <body quat="0 -0.7071068 0 0.7071068">
                 <joint name="br_y2" axis="0 0 1" range="-3.14 0.0"/>
-                <geom type="mesh" mesh="fclowerleg" quat="0 0 0 1" rgba="1 1 1 1"/>
+                <geom type="mesh" mesh="Lower Leg Round Right Side" quat="0 0 0 1" rgba="1 1 1 1"/>
               </body>
             </body>
           </body>
@@ -179,17 +173,17 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
           <geom type="mesh" mesh="M2006" material="M2006" pos="0.018 0.05 0.0365" quat="0.707 -0.707 0 0"/>
         </body>
         <joint name="bl_x" axis="1 0 0" range="-1.57 1.57"/>
-        <body name="bl" pos="0 0.03 0">
+        <body pos="0 0.03 0">
           <joint name="bl_y" axis="0 1 0" range="-1.57 1.57"/>
-          <body name = "blup" pos = "0 0 0" quat=".5 -.5 .5 -.5">
-            <geom axisangle="0 1 0 0" name="bl" size="0.01" type="mesh" mesh="fcupperleg" rgba = "1 1 1 1" density="50"/>
+          <body pos = "0 0 -0.0785" quat=".5 .5 .5 .5">
+            <geom type="mesh" mesh="Upper Leg Left Side" rgba = "1 1 1 1"/>
           </body>
-          <body name="bl2" pos="0 0 -0.0785">
+          <body pos="0 0 -0.0785">
             <!--                                            front/back in/out up/down -->
             <geom type="mesh" mesh="M2006" material="M2006" pos="-0.013 0.03 -0.015" quat="0 0 .707 .707"/>
-            <body name = "bllow" pos = "0 0 0" quat="0 0 .707 .707">
+            <body pos = "0 0 0" quat="0 0 .707 .707">
               <joint name="bl_y2" axis="0 0 1" range="-3.14 0.0"/>
-              <geom axisangle="0 1 0 0" name="bl_l2"  size="0.01" type="mesh" mesh="fclowerleg" rgba = "1 1 1 1" density="50"/>
+              <geom type="mesh" mesh="Lower Leg Round Left Side" rgba = "1 1 1 1"/>
             </body>
           </body>
         </body>
