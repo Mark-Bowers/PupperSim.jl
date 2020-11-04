@@ -22,7 +22,7 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
 
   <default>
     <mesh scale="0.001 0.001 0.001"/>
-    <joint type="hinge" limited="true" armature="0.0024" solimplimit="0.9 0.95 0.01" solreflimit="0.01 1" damping="0.0045"/>
+    <joint type="hinge" limited="true" armature="0.0024" solimplimit="0.9 0.95 0.01" solreflimit="0.01 1" damping="0.045"/>
     <geom conaffinity="0" friction="0.9 0.005 0.0001" solimp="0.9 0.95 0.01" solref="0.01 1"/>  <!--solimp="0.9 0.95 0.01" "0.9 0.95 0.001 0.5 2" solref="0.01 1" "0.02 1"-->
     <position forcelimited="true"/>
     <default class="2x4">
@@ -46,6 +46,8 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
   <asset>
     <texture builtin="gradient" height="100" rgb1="1 1 1" rgb2="0 0 0" type="skybox" width="100"/>
     <mesh file="TCBody.stl"/>
+    <mesh file="Upper Leg plus Motor Left Side.stl"/>
+    <mesh file="Upper Leg plus Motor Right Side.stl"/>
     <mesh file="Upper Leg Left Side (reduced).stl"/>
     <mesh file="Upper Leg Right Side (reduced).stl"/>
     <mesh file="M2006.stl"/>
@@ -116,9 +118,9 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
             <joint name="fr_y" axis="0 1 0" range="-1.57 1.57"/>
             <inertial pos="0 0 0" mass="0.06" diaginertia="0.0002253 6.493e-05 0.0002502"/>
             <body pos = "0 0 -0.0785" quat="-.5 -.5 .5 .5">
-              
-              <geom type="mesh" mesh="Upper Leg Right Side (reduced)" rgba = "1 1 1 1"/>
-              <geom type="mesh" mesh="M2006" material="M2006" pos=".04 -0.0205 .001" quat="-0.6532815 0.2705981 -0.6532815 0.2705981"/>
+              <geom type="mesh" mesh="Upper Leg plus Motor Right Side"/>
+              <!-- <geom type="mesh" mesh="Upper Leg Right Side (reduced)" rgba = "1 1 1 1"/>
+              <geom type="mesh" mesh="M2006" material="M2006" pos=".04 -0.0205 .001" quat="-0.6532815 0.2705981 -0.6532815 0.2705981"/> -->
               <body quat="0 -0.7071068 0 0.7071068">
                 <joint name="fr_y2" axis="0 0 1" range="-3.14 0.0"/>
                 <inertial pos="0 0 0" mass="0.03" diaginertia="0.0002253 6.493e-05 0.0002502"/>
@@ -140,11 +142,12 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
           <joint name="fl_y" axis="0 1 0" range="-1.57 1.57"/>
           <inertial pos="0 0 0" mass="0.06" diaginertia="0.0002253 6.493e-05 0.0002502"/>
           <body pos = "0 0 -0.0785" quat=".5 .5 .5 .5">
-            <geom type="mesh" mesh="Upper Leg Left Side (reduced)" rgba = "1 1 1 1"/>
+              <geom type="mesh" mesh="Upper Leg plus Motor Left Side"/>
+            <!-- <geom type="mesh" mesh="Upper Leg Left Side (reduced)" rgba = "1 1 1 1"/> -->
           </body>
           <body pos="0 0 -0.0785">
             <!--                                            front/back in/out up/down -->
-            <geom type="mesh" mesh="M2006" material="M2006" pos="-0.013 0.03 -0.015" quat="0 0 .707 .707"/>
+            <!-- <geom type="mesh" mesh="M2006" material="M2006" pos="-0.013 0.03 -0.015" quat="0 0 .707 .707"/> -->
             <body quat="0 0 .707 .707">
               <joint name="fl_y2" axis="0 0 1" range="-3.14 0.0"/>
               <inertial pos="0 0 0" mass="0.03" diaginertia="0.0002253 6.493e-05 0.0002502"/>
@@ -164,8 +167,9 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
             <inertial pos="0 0 0" mass="0.06" diaginertia="0.0002253 6.493e-05 0.0002502"/>
             <joint name="br_y" axis="0 1 0" range="-1.57 1.57"/>
             <body pos = "0 0 -0.0785" quat="-.5 -.5 .5 .5">
-              <geom type="mesh" mesh="Upper Leg Right Side (reduced)" rgba = "1 1 1 1"/>
-              <geom type="mesh" mesh="M2006" material="M2006" pos=".04 -0.0205 .001" quat="-0.6532815 0.2705981 -0.6532815 0.2705981"/>
+              <geom type="mesh" mesh="Upper Leg plus Motor Right Side"/>
+              <!-- <geom type="mesh" mesh="Upper Leg Right Side (reduced)" rgba = "1 1 1 1"/>
+              <geom type="mesh" mesh="M2006" material="M2006" pos=".04 -0.0205 .001" quat="-0.6532815 0.2705981 -0.6532815 0.2705981"/> -->
               <body quat="0 -0.7071068 0 0.7071068">
                 <joint name="br_y2" axis="0 0 1" range="-3.14 0.0"/>
                 <inertial pos="0 0 0" mass="0.03" diaginertia="0.0002253 6.493e-05 0.0002502"/>
@@ -187,11 +191,12 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
           <inertial pos="0 0 0" mass="0.06" diaginertia="0.0002253 6.493e-05 0.0002502"/>
           <joint name="bl_y" axis="0 1 0" range="-1.57 1.57"/>
           <body pos = "0 0 -0.0785" quat=".5 .5 .5 .5">
-            <geom type="mesh" mesh="Upper Leg Left Side (reduced)" rgba = "1 1 1 1"/>
+              <geom type="mesh" mesh="Upper Leg plus Motor Left Side"/>
+            <!-- <geom type="mesh" mesh="Upper Leg Left Side (reduced)" rgba = "1 1 1 1"/> -->
           </body>
           <body pos="0 0 -0.0785">
             <!--                                            front/back in/out up/down -->
-            <geom type="mesh" mesh="M2006" material="M2006" pos="-0.013 0.03 -0.015" quat="0 0 .707 .707"/>
+            <!-- <geom type="mesh" mesh="M2006" material="M2006" pos="-0.013 0.03 -0.015" quat="0 0 .707 .707"/> -->
             <body pos = "0 0 0" quat="0 0 .707 .707">
               <joint name="bl_y2" axis="0 0 1" range="-3.14 0.0"/>
               <inertial pos="0 0 0" mass="0.03" diaginertia="0.0002253 6.493e-05 0.0002502"/>
@@ -213,20 +218,20 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
               For hinge and slide joints, the actuator length equals the joint position/angle times the first element of gear.  -->
     <!-- kp: Position feedback gain.  -->
     <!-- forcerange: Range for clamping the force output. The compiler expects the first value to be no greater than the second value.  -->
-    <position gear="1" joint="fr_x" name="fr_x"   kp="3" forcerange="-2.4 2.4"/>
-    <position gear="1" joint="fr_y" name="fr_y"   kp="3" forcerange="-2.4 2.4"/>
-    <position gear="1" joint="fr_y2" name="fr_y2" kp="3" forcerange="-2.4 2.4"/>
+    <position gear="1" joint="fr_x" name="fr_x"   kp="100" forcerange="-2.4 2.4"/>
+    <position gear="1" joint="fr_y" name="fr_y"   kp="100" forcerange="-2.4 2.4"/>
+    <position gear="1" joint="fr_y2" name="fr_y2" kp="100" forcerange="-2.4 2.4"/>
 
-    <position gear="1" joint="fl_x" name="fl_x"   kp="3" forcerange="-2.4 2.4"/>
-    <position gear="1" joint="fl_y" name="fl_y"   kp="3" forcerange="-2.4 2.4"/>
-    <position gear="1" joint="fl_y2" name="fl_y2" kp="3" forcerange="-2.4 2.4"/>
+    <position gear="1" joint="fl_x" name="fl_x"   kp="100" forcerange="-2.4 2.4"/>
+    <position gear="1" joint="fl_y" name="fl_y"   kp="100" forcerange="-2.4 2.4"/>
+    <position gear="1" joint="fl_y2" name="fl_y2" kp="100" forcerange="-2.4 2.4"/>
 
-    <position gear="1" joint="br_x" name="br_x"   kp="3" forcerange="-2.4 2.4"/>
-    <position gear="1" joint="br_y" name="br_y"   kp="3" forcerange="-2.4 2.4"/>
-    <position gear="1" joint="br_y2" name="br_y2" kp="3" forcerange="-2.4 2.4"/>
+    <position gear="1" joint="br_x" name="br_x"   kp="100" forcerange="-2.4 2.4"/>
+    <position gear="1" joint="br_y" name="br_y"   kp="100" forcerange="-2.4 2.4"/>
+    <position gear="1" joint="br_y2" name="br_y2" kp="100" forcerange="-2.4 2.4"/>
 
-    <position gear="1" joint="bl_x" name="bl_x"   kp="3" forcerange="-2.4 2.4"/>
-    <position gear="1" joint="bl_y" name="bl_y"   kp="3" forcerange="-2.4 2.4"/>
-    <position gear="1" joint="bl_y2" name="bl_y2" kp="3" forcerange="-2.4 2.4"/>
+    <position gear="1" joint="bl_x" name="bl_x"   kp="100" forcerange="-2.4 2.4"/>
+    <position gear="1" joint="bl_y" name="bl_y"   kp="100" forcerange="-2.4 2.4"/>
+    <position gear="1" joint="bl_y2" name="bl_y2" kp="100" forcerange="-2.4 2.4"/>
   </actuator>
 </mujoco>
