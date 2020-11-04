@@ -18,7 +18,7 @@ _y indicates rotation on the left/right axis of the hip module
 _ext indicates linear extension of the leg. Positive values = leg goes up
 -->
 <mujoco model="Pupper">
-  <compiler angle="radian" meshdir="mesh/" texturedir="texture/"/>
+  <compiler angle="radian" meshdir="mesh/" texturedir="texture/" inertiafromgeom="false"/>
 
   <default>
     <mesh scale="0.001 0.001 0.001"/>
@@ -96,6 +96,7 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
       <inertial pos="0 0 0" mass="1.0" diaginertia="0.0003688 0.002508 0.002674"/>
       <!-- need to update every mass and diaginertia in this file! -->
       
+      <!-- delete body -->
       <body pos="0.0 0.0 -0.03425" quat="-0.7071068 0 0 0.7071068">
         <camera name="puppercam" pos="0 0.16 0.11" quat="0.7453559925 0.6666666 0 0"/>
         <geom type="mesh" mesh="TCBody" pos="0 -0.08 0.05" quat="0 0 0.7071068 0.7071068" material="ABS"/>
@@ -109,17 +110,24 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
       <body name="fr_module" pos="0.1 -0.04 0">
         <joint name="fr_x" axis="1 0 0" range="-1.57 1.57"/>
         <inertial pos="0 0 0" mass="0.08" diaginertia="3.698e-05 7.127e-06 4.075e-05"/>
+        
+        <!-- squash body with the next one-->
         <body pos="-0.0145 0.008 -0.015" quat="0 0 0.7071068 0.7071068">
           <!-- the pos and quat on the motor orient the tab (electrical connection) to point up -->
           <geom type="mesh" mesh="M2006" material="M2006" pos="-0.015 -0.005 0" quat="-0.9238795 0 0 0.3826834"/>
+          
+          <!-- squash body with the previous one -->
           <body pos="-0.015 0.015 -0.037" quat="0 0 0.7071068 0.7071068">
             <joint name="fr_y" axis="0 1 0" range="-1.57 1.57"/>
             <inertial pos="0 0 0" mass="0.06" diaginertia="0.0002253 6.493e-05 0.0002502"/>
+            
+            <!-- delete body -->
             <body pos = "0 0 -0.0785" quat="-.5 -.5 .5 .5">
               
               <geom type="mesh" mesh="Upper Leg Right Side (reduced)" rgba = "1 1 1 1"/>
               <geom type="mesh" mesh="M2006" material="M2006" pos=".04 -0.0205 .001" quat="-0.6532815 0.2705981 -0.6532815 0.2705981"/>
               <body quat="0 -0.7071068 0 0.7071068">
+                <!-- name body -->
                 <joint name="fr_y2" axis="0 0 1" range="-3.14 0.0"/>
                 <inertial pos="0 0 0" mass="0.03" diaginertia="0.0002253 6.493e-05 0.0002502"/>
                 <geom type="mesh" mesh="Lower Leg Round Right Side" quat="0 0 0 1" rgba="1 1 1 1"/>
@@ -132,6 +140,8 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
       <body name="fl_module" pos="0.1 0.04 0">
         <joint name="fl_x" axis="1 0 0" range="-1.57 1.57"/>
         <inertial pos="0 0 0" mass="0.08" diaginertia="3.698e-05 7.127e-06 4.075e-05"/>
+        
+        <!-- squash body with the next one-->
         <body pos="-0.022 0.042 -0.004" quat="0 0.7071068 0 0.7071068">
           <!--                                            up/down   in/out   front/back-->
           <geom type="mesh" mesh="M2006" material="M2006" pos="0.018 0.05 0.0365" quat="0.707 -0.707 0 0"/>
@@ -139,9 +149,13 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
         <body pos="0 0.03 0">
           <joint name="fl_y" axis="0 1 0" range="-1.57 1.57"/>
           <inertial pos="0 0 0" mass="0.06" diaginertia="0.0002253 6.493e-05 0.0002502"/>
+          
+          <!-- delete body -->
           <body pos = "0 0 -0.0785" quat=".5 .5 .5 .5">
             <geom type="mesh" mesh="Upper Leg Left Side (reduced)" rgba = "1 1 1 1"/>
           </body>
+          
+          <!-- squash body with next one-->
           <body pos="0 0 -0.0785">
             <!--                                            front/back in/out up/down -->
             <geom type="mesh" mesh="M2006" material="M2006" pos="-0.013 0.03 -0.015" quat="0 0 .707 .707"/>
@@ -153,7 +167,8 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
           </body>
         </body>
       </body>
-
+      
+      <!-- continue squashing and/or deleting bodies until the body hierarchy looks like https://github.com/Nate711/PupperSimulation/blob/master/src/pupper_out.xml -->
       <body name="br_module" pos="-0.1 -0.04 0">
         <joint name="br_x" axis="1 0 0" range="-1.57 1.57"/>
         <inertial pos="0 0 0" mass="0.08" diaginertia="3.698e-05 7.127e-06 4.075e-05"/>
