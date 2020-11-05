@@ -22,8 +22,8 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
 <compiler angle="radian" meshdir="mesh/" texturedir="texture/"/>
 
 <default>
-    <joint type="hinge" limited="true" armature="0.01936" solimplimit="0.9 0.95 0.01" solreflimit="0.01 1" stiffness="0.1" damping="0.5"/>
-    <geom conaffinity="0" condim="3" contype="1" friction="0.5 0.005 0.0001" solimp="0.9 0.95 0.01" solref="0.01 1"/>
+    <joint type="hinge" limited="true" armature="0.01936" solimplimit="0.9 0.95 0.01" solreflimit="0.01 1" damping="0.5"/>
+    <geom conaffinity="0" friction="0.8 0.005 0.0001" solimp="0.9 0.95 0.01" solref="0.01 1"/>
     <position forcelimited="true"/>
 </default>
 
@@ -69,20 +69,20 @@ _ext indicates linear extension of the leg. Positive values = leg goes up
 
 <worldbody>
     <!--<light cutoff="100" diffuse="1 1 1" dir="-0 0 -1.3" directional="true" exponent="1" pos="0 0 1.3" specular=".1 .1 .1"/>
-    <geom conaffinity="1" condim="3" material="MatPlane" name="floor" rgba="0.8 0.9 0.8 1" size="40 40 40" type="plane"/>-->
+    <geom conaffinity="1" material="MatPlane" name="floor" rgba="0.8 0.9 0.8 1" size="40 40 40" type="plane"/>-->
     <light pos="0.4 -0.2 1.5" dir="-0.4 0.2 -1.5" cutoff="35"/>
-    <!--<geom type="plane" material="Oak" size="10 10 .1" conaffinity="1" condim="3" name="floor"/>-->
-    <geom type="plane" material="Oak" size="2 2 .4" conaffinity="1" condim="3" name="floor"/>
+    <!--<geom type="plane" material="Oak" size="10 10 .1" conaffinity="1" name="floor"/>-->
+    <geom type="plane" material="Oak" size="2 2 .4" conaffinity="1" name="floor"/>
     <body>
       <joint type="free" limited="false" damping=".3"/>
-      <geom type="sphere" material="BrushedAluminum" pos="0.5 0.5 0.07" size="0.07" conaffinity="1" condim="3" name="ball1" rgba="1 0 0 1"/>
+      <geom type="sphere" material="BrushedAluminum" pos="0.5 0.5 0.07" size="0.07" conaffinity="1" name="ball1" rgba="1 0 0 1"/>
     </body>
     <!-- <body>
       <joint type="free" limited="false" damping=".3"/>
-      <geom type="sphere" material="Marble" pos="0.35 0 0.15" size="0.15" conaffinity="1" condim="3" name="ball2"/>
+      <geom type="sphere" material="Marble" pos="0.35 0 0.15" size="0.15" conaffinity="1" name="ball2"/>
     </body> -->
-    <geom type="box" material="Marble" pos="0 0.5 0.011" size="0.4 0.15 0.011" conaffinity="1" condim="3" name="obstacle"/>
-    <body name="torso" pos="0 0 0.27">
+    <geom type="box" material="Marble" pos="0 0.5 0.011" size="0.4 0.15 0.011" conaffinity="1" name="obstacle"/>
+    <body name="torso" pos="0 0 0.26">
         <camera name="track" mode="trackcom" pos="0 -2 0.3" xyaxes="1 0 0 0 0 1"/>
         <freejoint/>
         <!--<geom name="torso" size="0.151924 0.05 0.03425" type="box" rgba=".8 .1 .1 .1"/>-->

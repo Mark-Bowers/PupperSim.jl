@@ -4,7 +4,7 @@
 
 # modified from https://github.com/klowrey/MujocoSim.jl/
 
-export loadmodel, pupper, simulate
+export loadmodel, pupper, simulate, tcsim
 
 @time using GLFW                    # 0.418646 seconds (564.20 k allocations: 33.920 MiB)
 @time using MuJoCo                  # 2.657531 seconds (10.89 M allocations: 579.276 MiB, 6.15% gc time), was 0.705183 seconds (2.45 M allocations: 162.621 MiB)
@@ -39,13 +39,15 @@ include("util.jl")
 include("record_video.jl")
 include("setup.jl")
 
+modelpath() = normpath(joinpath(dirname(pathof(@__MODULE__)), "../model/"))
+
 """
     loadmodel(modelfile = "model/Pupper.xml", width = 1920, height = 1080)
 
 Loads MuJoCo XML model and starts the simulation
 """
 function loadmodel(
-        modelfile = normpath(joinpath(dirname(pathof(@__MODULE__)), "../model/Pupper.xml")),
+        modelfile = string(modelpath(), "Pupper.xml"),
         width = 1920, height = 1080
     )
     m = jlModel(modelfile)
@@ -73,22 +75,26 @@ Creates a Robot controller with specified initial velocity and yaw_rate
 """
 function pupper(velocity = 0.2, yaw_rate = 0.0)
     config = Configuration()
+    config.z_clearance = 0.02     # height to pick up each foot during trot
+
+    # Create the robot (controller and controller state)
+    Robot(config, Command([velocity, 0], yaw_rate))
+end
+
+function tcpupper()
+    config = Configuration()
     #config.z_clearance = 0.10     # For scramble
-    config.z_clearance = 0.02     # For scramble
-    
+    config.z_clearance = 0.02     # height to pick up each foot during trot
+
     config.LEG_FB = 0.10  # front-back distance from center line to leg axis
     config.LEG_LR = 0.04  # left-right distance from center line to leg plane
     config.LEG_L2 = 0.11
     config.LEG_L1 = 0.08
-    config.x_shift = 0.02 #2
- #   config.ABDUCTION_OFFSET = 0.02 
-
-
-    command = Command([velocity, 0], yaw_rate, crouch_height)
-    # command.pitch = 0.1
+    config.x_shift = 0.02
+    # config.ABDUCTION_OFFSET = 0.02
 
     # Create the robot (controller and controller state)
-    Robot(config, command)
+    Robot(config, Command())
 end
 
 include("simstep.jl")
@@ -146,5 +152,10 @@ Run the simulation loop
 function simulate(modelpath::String, width = 0, height = 0, robot = nothing)
     simulate(loadmodel(modelpath, width, height), robot)
 end
+
+tcsim() = simulate(
+    loadmodel(string(modelpath(), "TCPupper.xml")),
+    tcpupper()
+    )
 
 end
