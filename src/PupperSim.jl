@@ -73,7 +73,16 @@ Creates a Robot controller with specified initial velocity and yaw_rate
 """
 function pupper(velocity = 0.2, yaw_rate = 0.0)
     config = Configuration()
-    config.z_clearance = 0.02     # height to pick up each foot during trot
+    #config.z_clearance = 0.10     # For scramble
+    config.z_clearance = 0.02     # For scramble
+    
+    config.LEG_FB = 0.10  # front-back distance from center line to leg axis
+    config.LEG_LR = 0.04  # left-right distance from center line to leg plane
+    config.LEG_L2 = 0.11
+    config.LEG_L1 = 0.08
+    config.x_shift = 0.02 #2
+ #   config.ABDUCTION_OFFSET = 0.02 
+
 
     command = Command([velocity, 0], yaw_rate, crouch_height)
     # command.pitch = 0.1
