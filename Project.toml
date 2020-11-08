@@ -26,6 +26,7 @@ GLFW = "3.4"
 MuJoCo = "0.3"
 StaticArrays = "0.12"
 VideoIO = "0.8"
+ZMQ = "1.2"
 julia = "1"
 
 [extras]
