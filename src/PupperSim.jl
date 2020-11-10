@@ -58,9 +58,9 @@ function loadmodel(
     s.modelfile = modelfile
     @info("Model file: $modelfile")
 
-    # Turn off shadows by default on non-Windows platforms
+    # Turn off shadows by default
     flags = MVector(s.scn[].flags)
-    flags[1] = Sys.iswindows()
+    flags[1] = 0
     s.scn[].flags = flags
 
     GLFW.SetWindowRefreshCallback(s.window, (w)->render(s,w))    # Called on window resize
@@ -84,13 +84,13 @@ end
 function tcpupper()
     config = Configuration()
     #config.z_clearance = 0.10     # For scramble
-    config.z_clearance = 0.02     # height to pick up each foot during trot
+    config.z_clearance = 0.04     # height to pick up each foot during trot
 
     config.LEG_FB = 0.10  # front-back distance from center line to leg axis
     config.LEG_LR = 0.04  # left-right distance from center line to leg plane
     config.LEG_L2 = 0.11
     config.LEG_L1 = 0.08
-    config.x_shift = 0.02
+    config.x_shift = -0.019
     # config.ABDUCTION_OFFSET = 0.02
 
     # Create the robot (controller and controller state)
