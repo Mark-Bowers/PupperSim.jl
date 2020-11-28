@@ -24,7 +24,7 @@ FFMPEG = "0.4"
 FixedPointNumbers = "0.8"
 GLFW = "3.4"
 MuJoCo = "0.3"
-StaticArrays = "0.12"
+StaticArrays = "0.12, 1.0"
 VideoIO = "0.8"
 julia = "1"
 
